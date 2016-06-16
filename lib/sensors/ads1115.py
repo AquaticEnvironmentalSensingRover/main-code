@@ -19,4 +19,4 @@ class ADS1115(sensor.Sensor):
         value = self.bus.read_word_data(self.i2cAddress, 0x00) & 0xFFFF
         # Swap byte order from little endian to big endian
         value = ((value & 0xFF) << 8) | (value >> 8)
-        print('Raw ADC value: 0x{0:04X}'.format(value))
+        return value
