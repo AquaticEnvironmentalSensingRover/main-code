@@ -2,9 +2,9 @@ import time
 from pymongo import MongoClient
 
 class MongoAccess:
-    def __init__(self, dbName, collectionName):
+    def __init__(self, db, collection, *args, **kwargs):
         # Create collection object
-        self.collection = ((MongoClient())[dbName])[collectionName]
+        self.collection = ((MongoClient(*args, **kwargs))[db])[collection]
         
         # Write saying start/initialisation time in epoch
         self.write({"atype":"START", "ver":"1.0", "ts":time.time()
