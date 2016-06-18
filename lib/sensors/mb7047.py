@@ -1,4 +1,3 @@
-import smbus
 import sensor
 import time
 

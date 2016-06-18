@@ -1,4 +1,3 @@
-import smbus
 import sensor
 
 class ADS1115(sensor.Sensor):
