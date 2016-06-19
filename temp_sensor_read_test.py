@@ -1,12 +1,13 @@
-from lib import sensors, database
+from lib.sensors.mcp9808 import MCP9808
+from lib.database.mongo_write import MongoWrite
 import time
 
 tempSensors = []
 
 for ii in range(4):
-    tempSensors.append(sensors.mcp9808.MCP9808(0x18+ii))
+    tempSensors.append(MCP9808(0x18+ii))
 
-mongo = database.MongoWrite("test_data1", "tempData")
+mongo = MongoWrite("test_data1", "tempData")
 
 #{
 #  ver : <float>
