@@ -4,10 +4,13 @@ import time
 
 tempSensors = []
 
-for ii in range(4):
-    tempSensors.append(MCP9808(0x18+ii))
+tempSensors.append(MCP9808(0x18))
+tempSensors.append(MCP9808(0x18+4))
+tempSensors.append(MCP9808(0x18+1))
+tempSensors.append(MCP9808(0x18+2))
+tempSensors.append(MCP9808(0x18+3))
 
-mongo = MongoWrite("test_data1", "tempData")
+mongo = MongoWrite("test_data2", "tempData")
 
 #{
 #  ver : <float>
