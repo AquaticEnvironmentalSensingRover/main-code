@@ -23,10 +23,9 @@ mongo = MongoWrite("test_data1", "tempData")
 
 while True:
     for ii, tempSensor in enumerate(tempSensors):
-        #mongo.write
-        print({"atype":"TEMP", "itype": ii, "vertype": 1.0
+        mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
                     , "ts": time.time(), "param" : tempSensor.read()
                     , "paramunit": "degC", "comments" : "testing"
                     , "tags": ["temp", "test"]})
                     
-    time.sleep(0.5)
+    time.sleep(2)
