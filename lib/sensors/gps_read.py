@@ -2,7 +2,7 @@ import gps
 import threading
 import time
 
-class GPS:
+class GPSRead:
     _VALID_READ_TIME = 3
     
     data = None
