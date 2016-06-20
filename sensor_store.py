@@ -27,11 +27,14 @@ mongo = MongoWrite("test_data4", "readData")
 #}
 
 while True:
-    location = gpsSensor.readLocationData()
-    mongo.write({"atype":"GPS", "vertype": 1.0, "ts": time.time()
-                , "param" : {"lat":location.lat,"lon":location.lon}
-                , "paramunit": "{degLat,degLon}", "comments" : "testing"
-                , "tags": ["gps", "test"]})
+    try:
+        location = gpsSensor.readLocationData()
+        mongo.write({"atype":"GPS", "vertype": 1.0, "ts": time.time()
+                    , "param" : {"lat":location.lat,"lon":location.lon}
+                    , "paramunit": "{degLat,degLon}", "comments" : "testing"
+                    , "tags": ["gps", "test"]})
+    except ValueError:
+        pass
     
     for ii, tempSensor in enumerate(tempSensors):
         mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
