@@ -24,3 +24,5 @@ while True:
                 , "tags": ["gps", "test"]})
                     
     time.sleep(1)
+    
+gpsSensor.close()
