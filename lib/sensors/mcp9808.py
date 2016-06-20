@@ -1,4 +1,3 @@
-import smbus
 import sensor
 
 class MCP9808(sensor.Sensor):
@@ -15,8 +14,8 @@ class MCP9808(sensor.Sensor):
     _REG_MANUF_ID           = 0x06
     _REG_DEVICE_ID          = 0x07
     
-    def __init__(self, i2cAddress= 0x18, *args, **kwargs):
-        super(self).__init__(i2cAddress=i2cAddress, *args, **kwargs)
+    def __init__(self, i2cAddress= _DEFAULT_I2C_ADDRESS, *args, **kwargs):
+        super(MCP9808, self).__init__(i2cAddress, *args, **kwargs)
     
     def readC(self):
         # Read temperature value
@@ -35,4 +34,4 @@ class MCP9808(sensor.Sensor):
         return (self.readC() * 9/5) + 32
     
     def read(self, *args, **kwargs):
-        self.readC(*args, **kwargs)
+        return self.readC(*args, **kwargs)
