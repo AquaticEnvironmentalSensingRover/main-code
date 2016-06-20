@@ -3,9 +3,9 @@ from lib.database.mongo_write import MongoWrite
 import sys
 import time
 
-gpsSensor = GPSRead()
-
 mongo = MongoWrite(sys.argv[1], sys.argv[2])
+
+gpsSensor = GPSRead()
 
 #{
 #  ver : <float>
