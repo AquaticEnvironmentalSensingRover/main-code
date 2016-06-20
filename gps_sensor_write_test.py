@@ -1,10 +1,11 @@
 from lib.sensors.gps_read import GPSRead
 from lib.database.mongo_write import MongoWrite
+import sys
 import time
 
 gpsSensor = GPSRead()
 
-mongo = MongoWrite("test_data3", "gpsData")
+mongo = MongoWrite(sys.argv[1], sys.argv[2])
 
 #{
 #  ver : <float>
