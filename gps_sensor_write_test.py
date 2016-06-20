@@ -18,12 +18,14 @@ mongo = MongoWrite(sys.argv[1], sys.argv[2])
 #}
 
 while True:
-    location = gpsSensor.readLocationData()
-    mongo.write({"atype":"GPS", "vertype": 1.0, "ts": time.time()
-                , "param" : {"lat":location.lat,"lon":location.lon}
-                , "paramunit": "{degLat,degLon}", "comments" : "testing"
-                , "tags": ["gps", "test"]})
-                    
-    time.sleep(1)
-    
+    try:
+        location = gpsSensor.readLocationData()
+        mongo.write({"atype":"GPS", "vertype": 1.0, "ts": time.time()
+                    , "param" : {"lat":location.lat,"lon":location.lon}
+                    , "paramunit": "{degLat,degLon}", "comments" : "testing"
+                    , "tags": ["gps", "test"]})
+                        
+        time.sleep(1)
+    except ValueError:
+        pass
 gpsSensor.close()
