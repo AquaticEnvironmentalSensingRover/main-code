@@ -5,7 +5,7 @@ import time
 class GPSRead:
     _VALID_READ_TIME = 3
     
-    data = None
+    locationData = None
     timeOfRead = None
     
     def __init__(self, *args, **kwargs):
@@ -28,7 +28,7 @@ class GPSRead:
           		# print report
                 if report['class'] == 'TPV':
                     if hasattr(report, 'lat'):
-                        self.data = report
+                        self.locationData = report
                         self.timeOfRead = time.time()
             except KeyError:
       		pass
@@ -40,9 +40,9 @@ class GPSRead:
         self.running = False
         self.thread.join()
     
-    def readLocation(self):
-        if self.data == None:
+    def readLocationData(self):
+        if self.locationData == None:
             raise ValueError("A read has not been succesfully completed yet")
         if time.time() - self.timeOfRead > self._VALID_READ_TIME:
             raise ValueError("The last data has expired")
-        return [self.data["lat"], self.data["lon"]]
+        return self.locationData
