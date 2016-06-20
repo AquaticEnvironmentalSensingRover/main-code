@@ -28,4 +28,6 @@ while True:
         time.sleep(1)
     except ValueError:
         pass
+    except KeyboardInterrupt:
+        gpsSensor.close()
 gpsSensor.close()
