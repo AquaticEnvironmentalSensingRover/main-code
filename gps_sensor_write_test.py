@@ -30,4 +30,5 @@ while True:
         pass
     except KeyboardInterrupt:
         gpsSensor.close()
+        quit()
 gpsSensor.close()
