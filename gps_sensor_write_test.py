@@ -1,6 +1,6 @@
 from lib.sensors.gps_read import GPSRead
 from lib.database.mongo_write import MongoWrite
-import sys
+import sys, os
 import time
 
 mongo = MongoWrite(sys.argv[1], sys.argv[2])
@@ -30,5 +30,9 @@ while True:
         pass
     except KeyboardInterrupt:
         gpsSensor.close()
-        quit()
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
+    
 gpsSensor.close()
