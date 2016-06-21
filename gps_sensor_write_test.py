@@ -1,10 +1,11 @@
 from lib.sensors.gps_read import GPSRead
 from lib.database.mongo_write import MongoWrite
+import sys, os
 import time
 
-gpsSensor = GPSRead()
+mongo = MongoWrite(sys.argv[1], sys.argv[2])
 
-mongo = MongoWrite("test_data3", "gpsData")
+gpsSensor = GPSRead()
 
 #{
 #  ver : <float>
@@ -17,10 +18,21 @@ mongo = MongoWrite("test_data3", "gpsData")
 #}
 
 while True:
-    location = gpsSensor.readLocationData()
-    mongo.write({"atype":"GPS", "vertype": 1.0, "ts": time.time()
-                , "param" : {"lat":location.lat,"lon":location.lon}
-                , "paramunit": "{degLat,degLon}", "comments" : "testing"
-                , "tags": ["gps", "test"]})
-                    
-    time.sleep(1)
+    try:
+        location = gpsSensor.readLocationData()
+        mongo.write({"atype":"GPS", "vertype": 1.0, "ts": time.time()
+                    , "param" : {"lat":location.lat,"lon":location.lon}
+                    , "paramunit": "{degLat,degLon}", "comments" : "testing"
+                    , "tags": ["gps", "test"]})
+                        
+        time.sleep(1)
+    except ValueError:
+        pass
+    except KeyboardInterrupt:
+        gpsSensor.close()
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
+    
+gpsSensor.close()
