@@ -48,7 +48,7 @@ while True:
     # PRESSURE Sensor
     data = pressureSensor.read()
     mongo.write({"atype":"PRESR", "vertype": 1.0, "ts": time.time()
-                , "param" : {"pressure":data["mbar"],"temp":data["mbar"]}
+                , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
                 , "paramunit": {"pressure":"mbar", "temp":"degC"}
                 , "comments" : "testing", "tags": ["pressure", "test"]})
         
