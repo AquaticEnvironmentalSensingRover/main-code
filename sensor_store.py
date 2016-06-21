@@ -4,7 +4,8 @@ from lib.sensors.gps_read import GPSRead
 from lib.sensors.mb7047 import MB7047
 from lib.database.mongo_write import MongoWrite
 import sys
-import datetime, time
+from datetime import datetime
+import time
 
 mongo = MongoWrite(datetime.now().strftime("AESR-%Y%m%d:%H%M%S"), "data")
 
