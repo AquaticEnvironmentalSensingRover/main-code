@@ -17,10 +17,12 @@ sensor = MS5803()
 #}
 
 while True:
-    data = sensor.read()
-    mongo.write({"atype":"PRESR", "vertype": 1.0, "ts": time.time()
-                , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
-                , "paramunit": {"pressure":"mbar", "temp":"degC"}
-                , "comments" : "testing", "tags": ["pressure", "test"]})
-                        
-    time.sleep(1)
+    try:
+        data = sensor.read()
+        mongo.write({"atype":"PRESR", "vertype": 1.0, "ts": time.time()
+                    , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
+                    , "paramunit": {"pressure":"mbar", "temp":"degC"}
+                    , "comments" : "testing", "tags": ["pressure", "test"]})
+        time.sleep(1)
+    except IOError:
+        print("Read write error")
