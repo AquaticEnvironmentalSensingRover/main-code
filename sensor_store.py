@@ -1,6 +1,7 @@
 from lib.sensors.mcp9808 import MCP9808
 from lib.sensors.ms5803 import MS5803
 from lib.sensors.gps_read import GPSRead
+from lib.sensors.mb7047 import MB7047
 from lib.database.mongo_write import MongoWrite
 import sys
 import datetime, time
@@ -18,6 +19,7 @@ pressureSensor = MS5803()
 
 gpsSensor = GPSRead()
 
+sonarSensor = MB7047()
 
 #{
 #  ver : <float>
@@ -55,5 +57,13 @@ while True:
         mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
                     , "ts": time.time(), "param" : tempSensor.read()
                     , "paramunit": "degC", "comments" : "testing"
-                    , "tags": ["temp", "test"]})    
+                    , "tags": ["temp", "test"]})
+                    
+    # SONAR Sensor
+    data = sonarSensor.read()
+    
+    mongo.write({"atype":"SONAR", "vertype": 1.0, "ts": time.time()
+                , "param" : data, "paramunit": "cm"
+                , "comments" : "testing", "tags": ["sonar", "depth", "test"]})
+    
     time.sleep(1)
