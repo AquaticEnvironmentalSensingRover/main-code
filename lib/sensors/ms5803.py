@@ -1,3 +1,7 @@
+# Link to datasheet of sensor: https://cdn.sparkfun.com/datasheets/Sensors/Weather/ms5803_14ba.pdf
+# Link to original source (contains some errors that were fixed in this version): 
+#            https://github.com/ControlEverythingCommunity/MS5803-14BA/blob/master/Python/MS5803_14BA.py  
+
 import sensor
 import time 
 
