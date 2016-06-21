@@ -1,6 +1,7 @@
 from lib.sensors.mcp9808 import MCP9808
 from lib.sensors.gps_read import GPSRead
 from lib.database.mongo_write import MongoWrite
+import sys
 import time
 
 tempSensors = []
@@ -13,7 +14,7 @@ tempSensors.append(MCP9808(0x18+3))
 
 gpsSensor = GPSRead()
 
-mongo = MongoWrite("test_data4", "readData")
+mongo = MongoWrite(sys.argv[1], sys.argv[2])
 
 #{
 #  ver : <float>
