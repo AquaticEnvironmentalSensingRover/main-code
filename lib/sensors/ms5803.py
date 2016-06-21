@@ -95,6 +95,5 @@ class MS5803(sensor.Sensor):
         cTemp = TEMP / 100.0
                 
         # return values in a dictionary
-        return {"pressure" : pressure, "pressureunit" : "mbar" 
-                , "temp": cTemp, "tempunit" : "celcius"}
+        return {"mbar" : pressure, "temp": cTemp, "tempunit" : "degC"}
         
