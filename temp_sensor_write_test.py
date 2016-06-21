@@ -1,5 +1,6 @@
 from lib.sensors.mcp9808 import MCP9808
 from lib.database.mongo_write import MongoWrite
+import sys
 import time
 
 tempSensors = []
@@ -10,7 +11,7 @@ tempSensors.append(MCP9808(0x18+1))
 tempSensors.append(MCP9808(0x18+2))
 tempSensors.append(MCP9808(0x18+3))
 
-mongo = MongoWrite("test_data2", "tempData")
+mongo = MongoWrite(sys.argv[1], sys.argv[2])
 
 #{
 #  ver : <float>
