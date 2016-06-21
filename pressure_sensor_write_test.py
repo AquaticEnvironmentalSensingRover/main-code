@@ -16,6 +16,9 @@ sensor = MS5803()
 #  message : <String>
 #}
 
+MAX_ERRORS = 10
+errorAmount = 0
+
 while True:
     try:
         data = sensor.read()
@@ -23,6 +26,14 @@ while True:
                     , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
                     , "paramunit": {"pressure":"mbar", "temp":"degC"}
                     , "comments" : "testing", "tags": ["pressure", "test"]})
+                    
+        errorAmount = 0
         time.sleep(1)
     except IOError:
         print("Read write error")
+        
+        errorAmount += 1
+        if errorAmount>=MAX_ERRORS:
+            print("The amount of consecutive errors exceded the max amount "
+                + " (" + MAX_ERRORS + ")")
+            break
