@@ -43,28 +43,43 @@ while True:
                     , "tags": ["gps", "test"]})
     except ValueError:
         pass
-    
+    except IOError:
+        mongo.write({"atype":"ALERT", "vertype": 1.0, "ts": time.time()
+                    , "param":"GPS failed to read"})
     
     # PRESSURE Sensor
-    data = pressureSensor.read()
-    mongo.write({"atype":"PRESR", "vertype": 1.0, "ts": time.time()
-                , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
-                , "paramunit": {"pressure":"mbar", "temp":"degC"}
-                , "comments" : "testing", "tags": ["pressure", "test"]})
+    try:
+        data = pressureSensor.read()
+        mongo.write({"atype":"PRESR", "vertype": 1.0, "ts": time.time()
+                    , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
+                    , "paramunit": {"pressure":"mbar", "temp":"degC"}
+                    , "comments" : "testing", "tags": ["pressure", "test"]})
+    except IOError:
+        mongo.write({"atype":"ALERT", "vertype": 1.0, "ts": time.time()
+                    , "param":"Pressure sensor failed to read"})
         
     
     # TEMPERATURE Sensor
-    for ii, tempSensor in enumerate(tempSensors):
-        mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
-                    , "ts": time.time(), "param" : tempSensor.read()
-                    , "paramunit": "degC", "comments" : "testing"
-                    , "tags": ["temp", "test"]})
+    try:
+        for ii, tempSensor in enumerate(tempSensors):
+            mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
+                        , "ts": time.time(), "param" : tempSensor.read()
+                        , "paramunit": "degC", "comments" : "testing"
+                        , "tags": ["temp", "test"]})
+    except IOError:
+        mongo.write({"atype":"ALERT", "vertype": 1.0, "ts": time.time()
+                    , "param":"Temperature sensor failed to read"})
+
                     
     # SONAR Sensor
-    data = sonarSensor.read()
-    
-    mongo.write({"atype":"SONAR", "vertype": 1.0, "ts": time.time()
-                , "param" : data, "paramunit": "cm"
-                , "comments" : "testing", "tags": ["sonar", "depth", "test"]})
+    try:
+        data = sonarSensor.read()
+        
+        mongo.write({"atype":"SONAR", "vertype": 1.0, "ts": time.time()
+                    , "param" : data, "paramunit": "cm"
+                    , "comments" : "testing", "tags": ["sonar", "depth", "test"]})
+    except IOError:
+        mongo.write({"atype":"ALERT", "vertype": 1.0, "ts": time.time()
+                    , "param":"Sonar sensor failed to read"})
     
     time.sleep(1)
