@@ -8,7 +8,7 @@ class ADS1115(sensor.Sensor):
     def __init__(self, i2cAddress= _DEFAULT_I2C_ADDRESS, *args, **kwargs):
         super(ADS1115, self).__init__(i2cAddress, *args, **kwargs)
         
-        new_config = 0b0100001110000011
+        new_config = 0b0100000011100011
         # This config: Enables continuos reading, Disables comparator,
         # Sets the analog voltage range to 0 - 6V, and sets 
         
