@@ -50,7 +50,7 @@ try:
             raise sys.exc_info()
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"GPS"
-                        , "ts": time.time(), "param":sys.exc_info()})
+                        , "ts": time.time(), "param":str(sys.exc_info()[0])})
         
         # PRESSURE Sensor
         try:
@@ -63,7 +63,7 @@ try:
             raise sys.exc_info()
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"PRESR"
-                        , "ts": time.time(), "param":sys.exc_info()})
+                        , "ts": time.time(), "param":str(sys.exc_info()[0])})
         
         # TEMPERATURE Sensor
         try:
@@ -77,7 +77,7 @@ try:
             raise sys.exc_info()
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"TEMP"
-                        , "ts": time.time(), "param":sys.exc_info()})
+                        , "ts": time.time(), "param":str(sys.exc_info()[0])})
         
         # SONAR Sensor
         try:
@@ -89,7 +89,7 @@ try:
             raise sys.exc_info()
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"SONAR"
-                        , "ts": time.time(), "param":sys.exc_info()})
+                        , "ts": time.time(), "param":str(sys.exc_info()[0])})
         
         # ADS for Optical Dissolved Oxygen Sensor
         try:
@@ -102,7 +102,7 @@ try:
             raise sys.exc_info()
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"SONAR"
-                        , "ts": time.time(), "param":sys.exc_info()})
+                        , "ts": time.time(), "param":str(sys.exc_info()[0])})
 
         time.sleep(1)
 except KeyboardInterrupt:
