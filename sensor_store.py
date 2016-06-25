@@ -51,9 +51,9 @@ try:
         
         # PRESSURE Sensor
         try:
-            data = pressureSensor.read()
+            pData = pressureSensor.read()
             mongo.write({"atype":"PRESR", "vertype": 1.0, "ts": time.time()
-                        , "param" : {"pressure":data["mbar"],"temp":data["temp"]}
+                        , "param" : {"pressure":pData["mbar"],"temp":pData["temp"]}
                         , "paramunit": {"pressure":"mbar", "temp":"degC"}
                         , "comments" : "testing", "tags": ["pressure", "test"]})
         except KeyboardInterrupt:
@@ -65,8 +65,9 @@ try:
         # TEMPERATURE Sensor
         try:
             for ii, tempSensor in enumerate(tempSensors):
+                tData = tempSensor.read()
                 mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
-                            , "ts": time.time(), "param" : tempSensor.read()
+                            , "ts": time.time(), "param" : tData
                             , "paramunit": "degC", "comments" : "testing"
                             , "tags": ["temp", "test"]})
         except KeyboardInterrupt:
@@ -74,14 +75,12 @@ try:
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"TEMP"
                         , "ts": time.time(), "param":sys.exc_info()})
-    
-                        
+        
         # SONAR Sensor
         try:
-            data = sonarSensor.read()
-            
+            sData = sonarSensor.read()
             mongo.write({"atype":"SONAR", "vertype": 1.0, "ts": time.time()
-                        , "param" : data, "paramunit": "cm"
+                        , "param" : sData, "paramunit": "cm"
                         , "comments" : "testing", "tags": ["sonar", "depth", "test"]})
         except KeyboardInterrupt:
             raise sys.exc_info()
