@@ -2,6 +2,7 @@ from lib.sensors.mcp9808 import MCP9808
 from lib.sensors.ms5803 import MS5803
 from lib.sensors.gps_read import GPSRead
 from lib.sensors.mb7047 import MB7047
+from lib.sensors.ads1115 import ADS1115
 from lib.database.mongo_write import MongoWrite
 from datetime import datetime
 import time, sys
@@ -19,6 +20,8 @@ tempSensors.append(MCP9808(0x18+3))
 pressureSensor = MS5803()
 
 sonarSensor = MB7047()
+
+adsDevice = ADS1115()
 
 gpsSensor = GPSRead()
 
@@ -87,7 +90,20 @@ try:
         except:
             mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"SONAR"
                         , "ts": time.time(), "param":sys.exc_info()})
-                
+        
+        # ADS for Optical Dissolved Oxygen Sensor
+        try:
+            oData = adsDevice.read()
+            mongo.write({"atype":"ODO", "vertype": 1.0, "ts": time.time()
+                        , "param" : oData, "paramunit": "rawADC"
+                        , "comments" : "testing"
+                        , "tags": ["oxygen", "dissolved", "ADC"]})
+        except KeyboardInterrupt:
+            raise sys.exc_info()
+        except:
+            mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"SONAR"
+                        , "ts": time.time(), "param":sys.exc_info()})
+
         time.sleep(1)
 except KeyboardInterrupt:
     gpsSensor.close()
