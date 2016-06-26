@@ -77,19 +77,21 @@ try:
                         , "ts": time.time(), "param":str(sys.exc_info()[0])})
         
         # TEMPERATURE Sensor
-        try:
-            for ii, tempSensor in enumerate(tempSensors):
+        
+        for ii, tempSensor in enumerate(tempSensors):
+            try:
                 if not tempSensor == None:
                     tData = tempSensor.read()
                     mongo.write({"atype":"TEMP", "itype": ii, "vertype": 1.0
                                 , "ts": time.time(), "param" : tData
                                 , "paramunit": "degC", "comments" : "testing"
                                 , "tags": ["temp", "test"]})
-        except KeyboardInterrupt:
-            raise sys.exc_info()
-        except:
-            mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"TEMP"
-                        , "ts": time.time(), "param":str(sys.exc_info()[0])})
+            except KeyboardInterrupt:
+                raise sys.exc_info()
+            except:
+                mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"TEMP"
+                            , "ts": time.time()
+                            , "param":[ii, str(sys.exc_info()[0])]})
         
         # SONAR Sensor
         try:
