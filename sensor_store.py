@@ -119,6 +119,5 @@ try:
                         , "ts": time.time(), "param":str(sys.exc_info()[0])})
 
         time.sleep(1)
-except KeyboardInterrupt:
+finally:
     gpsSensor.close()
-    raise sys.exc_info()
