@@ -30,7 +30,7 @@ pressureSensor = createDevice("pressure", MS5803)
 
 sonarSensor = createDevice("sonar", MB7047)
 
-adsDevice = createDevice("ADS", ADS1115)
+adcDevice = createDevice("ADC", ADS1115)
 
 gpsSensor = createDevice("GPS", GPSRead)
 
@@ -108,8 +108,8 @@ try:
         
         # ADS for Optical Dissolved Oxygen Sensor
         try:
-            if not adsDevice == None:
-                oData = adsDevice.read()
+            if not adcDevice == None:
+                oData = adcDevice.read()
                 mongo.write({"atype":"ODO", "vertype": 1.0, "ts": time.time()
                             , "param" : oData, "paramunit": "rawADC"
                             , "comments" : "testing"
@@ -117,7 +117,7 @@ try:
         except KeyboardInterrupt:
             raise sys.exc_info()
         except:
-            mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"SONAR"
+            mongo.write({"atype":"ALERT", "vertype": 1.0, "itype":"ODO"
                         , "ts": time.time(), "param":str(sys.exc_info()[0])})
 
         time.sleep(1)
