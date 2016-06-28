@@ -44,7 +44,7 @@ def readDevice(device, readFunctionName, atype, paramUnit
                         , "param": param, "paramunit": paramUnit
                         , "comments": comments, "tags": tags}
             
-            if itype == None:
+            if not itype == None:
                 writeData["itype"] = itype
             
             mongo.write(writeData)
