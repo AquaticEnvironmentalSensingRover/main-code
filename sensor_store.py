@@ -19,44 +19,63 @@ def valueReplaceScan(value):
     
     return newValue
 
+
+database = datetime.now().strftime("AESR_%Y%m%dT%H%M%S")
+deviceMongo = MongoWrite(database, "data")
+print "Connected to device MongoDB server successfully!"
+
+statusMongo = MongoWrite(database, "status")
+print "Connected to status MongoDB server successfully!"
+
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
         device = sensorConstructor(*args, **kwargs)
         print(deviceType + " device was successfully initialized!")
     except:
         print "Failed setting up " + deviceType + " device"
+        statusMongo.write({"atype": "STARTALERT", "vertype": 1.0, "ts": time.time()
+                            , "itype": deviceType, "comments": ["Failed to set up"]
+                            , "tags": ["failed", "setup", "set up"]})
         device = None
     finally:
         return device
-
-
-mongo = MongoWrite(datetime.now().strftime("AESR_%Y%m%dT%H%M%S"), "data")
-print "Connected to mongoDB server successfully!"
-
 
 def readDevice(device, readFunctionName, atype, paramUnit
                 , comments = [], tags = [], itype = None):
     try:
         if not device == None:
+            # Write device read data to data collection
             param = getattr(device, readFunctionName)()
-            
             writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
                         , "param": param, "paramunit": paramUnit
                         , "comments": comments, "tags": tags}
-            
             if not itype == None:
                 writeData["itype"] = itype
             
-            mongo.write(writeData)
+            deviceMongo.write(writeData)
+            
+            # Write status to status collection
+            writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
+                        , "param": "Ok"}
+            if not itype == None:
+                writeData["itype"] = itype
+            
+            statusMongo.write(writeData)
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
-        mongo.write({"atype": "ALERT", "vertype": 1.0, "itype": atype
-                    , "ts": time.time(), "param": str(sys.exc_info()[0])})
+        writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
+                    , "param": str(sys.exc_info()[0])}
+        
+        if not itype == None:
+            writeData["itype"] = itype
+        
+        statusMongo.write(writeData)
 
 # =================Sensor Creation=================
 devices = {}
 
+print "\n============================" 
 tempSensors = []
 tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18))
 tempSensors.append(createDevice("Temperature 2", MCP9808, 0x18+4))
@@ -74,8 +93,8 @@ devices["adc"] = createDevice("ADC", ADS1115)
 devices["gps"] = createDevice("GPS", GPSRead)
 
 # Print sensors
-print "============================" 
-print "\nSensors:"
+print "============================"
+print "\n============================\nSensors:"
 
 # Get keys and values of the "devices" dictionary separately
 keys = []
