@@ -19,16 +19,6 @@ def valueReplaceScan(value):
     
     return newValue
 
-def createDevice(deviceType, sensorConstructor, *args, **kwargs):
-    try:
-        device = sensorConstructor(*args, **kwargs)
-        print(deviceType + " device was successfully initialized!")
-    except:
-        print "Failed setting up " + deviceType + " device"
-        device = None
-    finally:
-        return device
-
 
 database = datetime.now().strftime("AESR_%Y%m%dT%H%M%S")
 deviceMongo = MongoWrite(database, "data")
@@ -37,6 +27,18 @@ print "Connected to device MongoDB server successfully!"
 statusMongo = MongoWrite(database, "status")
 print "Connected to status MongoDB server successfully!"
 
+def createDevice(deviceType, sensorConstructor, *args, **kwargs):
+    try:
+        device = sensorConstructor(*args, **kwargs)
+        print(deviceType + " device was successfully initialized!")
+    except:
+        print "Failed setting up " + deviceType + " device"
+        statusMongo.write({"atype": "STARTALERT", "vertype": 1.0, "ts": time.time()
+                            , "itype": deviceType, "comments": ["Failed to set up"]
+                            , "tags": ["failed", "setup", "set up"]})
+        device = None
+    finally:
+        return device
 
 def readDevice(device, readFunctionName, atype, paramUnit
                 , comments = [], tags = [], itype = None):
