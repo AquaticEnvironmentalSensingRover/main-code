@@ -125,7 +125,7 @@ print "============================\n"
 try:
     while True:
         # GPS
-        readDevice(devices["gps"], "readLocationData", atype = "GPS"
+        readDevice(devices["gps"], "readLocationData", atype = "GPS", itype = "main"
                     , paramUnit = {"lat": "latitude", "lon": "longitude"}
                     , comments = ["Brick Yard Pond"], vertype = 1.1)
                             
