@@ -41,12 +41,12 @@ def createDevice(deviceType, sensorConstructor, *args, **kwargs):
         return device
 
 def readDevice(device, readFunctionName, atype, paramUnit
-                , comments = [], tags = [], itype = None):
+                , comments = [], tags = [], itype = None, vertype = 1.0):
     try:
         if not device == None:
             # Write device read data to data collection
             param = getattr(device, readFunctionName)()
-            writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
+            writeData = {"atype": atype, "vertype": vertype, "ts": time.time()
                         , "param": param, "paramunit": paramUnit
                         , "comments": comments, "tags": tags}
             if not itype == None:
