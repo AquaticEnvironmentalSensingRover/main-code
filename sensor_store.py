@@ -127,7 +127,7 @@ try:
         # GPS
         readDevice(devices["gps"], "readLocationData", atype = "GPS"
                     , paramUnit = {"lat": "latitude", "lon": "longitude"}
-                    , comments = ["Brick Yard Pond"])
+                    , comments = ["Brick Yard Pond"], vertype = 1.1)
                             
         # PRESSURE Sensor
         readDevice(devices["pressure"], "read", atype = "PRESR"
