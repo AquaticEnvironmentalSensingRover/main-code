@@ -53,14 +53,6 @@ def readDevice(device, readFunctionName, atype, paramUnit
                 writeData["itype"] = itype
             
             deviceMongo.write(writeData)
-            
-            # Write status to status collection
-            writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
-                        , "param": "Ok"}
-            if not itype == None:
-                writeData["itype"] = itype
-            
-            statusMongo.write(writeData)
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
