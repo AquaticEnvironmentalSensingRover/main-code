@@ -1,5 +1,4 @@
 import sensor
-import time
 
 class BlueESC(sensor.Sensor):
     '''Library for the Blue Robotics BlueESC'''
