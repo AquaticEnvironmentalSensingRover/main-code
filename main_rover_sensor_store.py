@@ -2,7 +2,7 @@ from lib.sensors.mcp9808 import MCP9808
 from lib.sensors.ms5803 import MS5803
 from lib.sensors.gps_read import GPSRead
 from lib.sensors.mb7047 import MB7047
-from lib.sensors.ads1115 import ADS1115
+from lib.sensors.vernier_odo import VernierODO
 from lib.database.mongo_write import MongoWrite
 from datetime import datetime
 import time, sys
@@ -80,7 +80,7 @@ devices["pressure"] = createDevice("Pressure", MS5803)
 
 devices["sonar"] = createDevice("Sonar", MB7047)
 
-devices["adc"] = createDevice("ADC", ADS1115)
+devices["odo"] = createDevice("ODO", VernierODO)
 
 devices["gps"] = createDevice("GPS", GPSRead)
 
@@ -138,9 +138,9 @@ try:
                     , comments = ["Brick Yard Pond"])
         
         
-        # ADS for Optical Dissolved Oxygen Sensor
-        readDevice(devices["adc"], "read", atype = "ODO"
-                    , paramUnit = "rawADC"
+        # ODO (Optical Dissolved Oxygen) Sensor
+        readDevice(devices["odo"], "read", atype = "ODO", vertype = 1.1
+                    , paramUnit = {'rawADC' : 'Raw value from ADC', 'mgL':'Oxygen level in mg/L'}
                     , comments = ["Brick Yard Pond"])
         
         time.sleep(1)
