@@ -4,15 +4,19 @@ import time
 class MS5837(sensor.Sensor): 
     '''Library for the Blue Robotics MS5837-30BA Pressure Sensor'''
     
+    PROM_READ = 0xA2
     _DEFAULT_I2C_ADDRESS = 0x76
     
-    C1 = 0          # Pressure sensitivy
-    C2 = 0          # Pressure offset
-    C3 = 0          # Temperature coefficient of pressure sensitivity
-    C4 = 0          # Temperature coefficient of pressure offset
-    C5 = 0          # Reference temperature
-    C6 = 0          # Temperature coefficient of the temperature
+    # PROM Calibration values stored in the C array
+    # C[0]       always equals 0 - not used
+    # C[1]       Pressure sensitivy
+    # C[2]       Pressure offset
+    # C[3]       Temperature coefficient of pressure sensitivity
+    # C[4]       Temperature coefficient of pressure offset
+    # C[5]       Reference temperature
+    # C[6]       Temperature coefficient of the temperature
     
+    C = []
     
     def __init__(self, i2cAddress= _DEFAULT_I2C_ADDRESS, *args, **kwargs):
         super(MS5837, self).__init__(i2cAddress, *args, **kwargs)
@@ -20,6 +24,15 @@ class MS5837(sensor.Sensor):
         # MS5837-30BA address, 0x76(118)
         # 0x1E(30)	Reset command
         self.bus.write_byte(i2cAddress, 0x1E) 
+        
+        # ---- Read 12 bytes of calibration data ----
+        self.C[0] = 0
+        for i in range(6):
+            data = self.bus.read_i2c_block_data(self.i2cAddress, self.PROM_READ+(i*2), 2) 
+            self.C[i+1] = (data[0] << 8) + data[1]
+            
+        '''
+        OLD VERSION
         
         # ---- Read 12 bytes of calibration data ----
         # Read pressure sensitivity
@@ -45,6 +58,8 @@ class MS5837(sensor.Sensor):
         # Read temperature coefficient of the temperature
         data = self.bus.read_i2c_block_data(self.i2cAddress, 0xAC, 2)
         self.C6 = (data[0] << 8) + data[1]
+        
+        '''
     
             
     # Read function, returns a dictionary of the pressure and temperature values      
@@ -76,12 +91,12 @@ class MS5837(sensor.Sensor):
         D2 = (value[0] << 16)  + (value[1] << 8) + value[2]
         
         # ---- Calculate temperature ----
-        dT = D2 - self.C5 * (2**8)
-        TEMP = 2000 + dT * self.C6 / (2**23)
+        dT = D2 - self.C[5] * (2**8)
+        TEMP = 2000 + dT * self.C[6] / (2**23)
         
         # ---- Calculated temperature compensated pressure ----
-        OFF = self.C2 * (2**16) + (self.C4 * dT) / (2**7)
-        SENS = self.C1 * (2**15) + (self.C3 * dT ) / (2**8)
+        OFF = self.C[2] * (2**16) + (self.C[4] * dT) / (2**7)
+        SENS = self.C[1] * (2**15) + (self.C[3] * dT ) / (2**8)
         
         # Temperature compensated pressure (not the most accurate)
         # Use the flowchart for optimum accuracy
@@ -116,4 +131,3 @@ class MS5837(sensor.Sensor):
                 
         # return values in a dictionary
         return {"mbar" : P2, "temp": TEMP2, "tempunit" : "degC"}
-        
