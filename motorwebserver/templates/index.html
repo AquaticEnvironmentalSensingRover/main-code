@@ -1,0 +1,94 @@
+<html>
+	<head>
+		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		
+		<style>
+		body {
+			overflow	: hidden;
+			padding		: 0;
+			margin		: 0;
+			background-color: #BBB;
+		}
+		#info {
+			position	: absolute;
+			top		: 0px;
+			width		: 100%;
+			padding		: 5px;
+			text-align	: center;
+		}
+		#container {
+			width		: 100%;
+			height		: 100%;
+			overflow	: hidden;
+			padding		: 0;
+			margin		: 0;
+			-webkit-user-select	: none;
+			-moz-user-select	: none;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="container"></div>
+		<div id="info">
+			AESR
+			<br/>
+			Touch the screen and move
+			-
+			works with mouse too
+			<br/>
+			<span id="result"></span>
+		</div> 
+		<script type="text/javascript" src="/static/scripts/virtualjoystick.js"></script>
+		<script type="text/javascript" src="/static/scripts/socket.io-1.4.5.js"></script>
+		<script>
+			var socket = io.connect('http://' + document.domain + ':' + location.port);
+			console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
+			
+			var joyRadius = 140
+			
+			var joystick	= new VirtualJoystick({
+				container	: document.getElementById('container'),
+				mouseSupport	: true,
+				stationaryBase: true,
+				baseX: window.innerWidth/2,
+				baseY: window.innerHeight/2,
+				limitStickTravel: true,
+				stickRadius: joyRadius,
+			});
+			joystick.addEventListener('touchStart', function(){
+				console.log('push')
+			})
+			joystick.addEventListener('touchEnd', function(){
+				console.log('release')
+			})
+			
+			setInterval(function(){
+				var joyUse = joystick.right() || joystick.up() || joystick.left() || joystick.down()
+				
+				var xValue = (joyUse ? joystick.deltaX() : 0)
+				var yValue = (joyUse ? joystick.deltaY()*-1 : 0)
+				
+				var outputEl	= document.getElementById('result');
+				outputEl.innerHTML	= '<b>Result:</b> '
+					+ ' dx:'+xValue
+					+ ' dy:'+yValue
+					+ (joystick.right()	? ' right'	: '')
+					+ (joystick.up()	? ' up'		: '')
+					+ (joystick.left()	? ' left'	: '')
+					+ (joystick.down()	? ' down' 	: '')	
+			}, 1/30 * 1000);
+			
+			setInterval(function(){
+				var joyUse = joystick.right() || joystick.up() || joystick.left() || joystick.down()
+				if (joyUse) {
+					socket.emit("input", {x: joystick.deltaX()/joyRadius, y: (joystick.deltaY()/joyRadius)*-1})
+				}
+				else {
+					socket.emit("input", {x: 0, y: 0})
+				}
+			}, 1/30 * 8000);
+		</script>
+	</body>
+</html>
