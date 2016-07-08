@@ -2,8 +2,9 @@
 
 import time
 import struct
+import sensor
 
-class BNO055:
+class BNO055(sensor.Sensor):
     BNO055_ADDRESS_A                 = 0x28
     BNO055_ADDRESS_B                 = 0x29
     BNO055_ID                      = 0xA0
