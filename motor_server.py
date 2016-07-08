@@ -2,6 +2,7 @@ from flask_socketio import SocketIO
 from flask import Flask, render_template, send_from_directory
 import time, os
 from lib.sensors.blue_esc import BlueESC
+from lib.sensors.bno055 import BNO055
 
 webserverFolderName = "motorwebserver"
 
@@ -10,7 +11,13 @@ app = Flask(__name__, static_folder = webserverFolderName + "/static"
 
 socketio = SocketIO(app)
 
-motor = BlueESC()
+# BlueESC instances
+motors = {"n": BlueESC(0x29), "s": BlueESC(0x2a), "e": BlueESC(0x2b), "w": BlueESC(0x2c)}
+
+# BNO055 instance
+imu = BNO055()
+imu.setExternalCrystalUse(True)
+
 
 lastConnectTime = None
 running = True
@@ -33,11 +40,24 @@ def connect():
 # "up", "down", "left", or "right" to stop when finger is lifted off
 @socketio.on('input')
 def inputControl(data):
+    targetBearing = 10
     gain = 32767/80
     xValue = int(data['x']*gain)
-    motor.startPower(xValue)
-    print data
-    print xValue
+    yValue = int(data['y']*gain)
+    
+    compass = imu.getVector(BNO055.VECTOR_EULER)
+    
+    torque = (((compass - targetBearing)+180)%360) - 180
+    
+    # Y plane motors
+    motors['n'].startPower(yValue + torque)
+    motors['s'].startPower(-yValue + torque)
+    
+    # X plane motors
+    motors['e'].startPower(xValue + torque)
+    motors['w'].startPower(-xValue + torque)
+    
+    print xValue, yValue
 
 @socketio.on('poll')
 def poll(data):
