@@ -12,7 +12,7 @@ app = Flask(__name__, static_folder = webserverFolderName + "/static"
 socketio = SocketIO(app)
 
 # BlueESC instances
-motors = {"n": BlueESC(0x29), "s": BlueESC(0x2a), "e": BlueESC(0x2b), "w": BlueESC(0x2c)}
+motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
 
 # BNO055 instance
 imu = BNO055()
