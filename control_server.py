@@ -1,26 +1,37 @@
 from flask_socketio import SocketIO
 from flask import Flask, render_template, send_from_directory
-import time, os
 from lib.sensors.blue_esc import BlueESC
 from lib.sensors.bno055 import BNO055
+from pymongo import MongoClient
+import time, os, sys
 
-webserverFolderName = "motorwebserver"
+print "\nImports successfully completed\n"
 
-app = Flask(__name__, static_folder = webserverFolderName + "/static"
-            , template_folder = webserverFolderName + "/templates")
+# Static Variables
+DEBUG = True
+WEBSERVER_FOLDER_NAME = "motorwebserver"
 
+
+# Dynamic Variables
+app = Flask(__name__, static_folder = WEBSERVER_FOLDER_NAME + "/static"
+            , template_folder = WEBSERVER_FOLDER_NAME + "/templates")
 socketio = SocketIO(app)
 
 # BlueESC instances
-motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
+#motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
 
-# BNO055 instance
+# BNO055 sensor setup
 imu = BNO055()
+time.sleep(1)
 imu.setExternalCrystalUse(True)
 
-
 lastConnectTime = None
-running = True
+
+# Get status Collection object from inputted database name
+try:
+    dbCol = (MongoClient()[sys.argv[1]])["status"]
+except:
+    dbCol = None
 
 @app.route('/favicon.ico')
 def favicon():
@@ -47,17 +58,29 @@ def inputControl(data):
     
     compass = imu.getVector(BNO055.VECTOR_EULER)
     
-    torque = (((compass - targetBearing)+180)%360) - 180
+    print "\n" + str(compass)
     
-    # Y plane motors
-    motors['n'].startPower(yValue + torque)
-    motors['s'].startPower(-yValue + torque)
+    torque = (((compass[0] - targetBearing)+180)%360) - 180
     
     # X plane motors
-    motors['e'].startPower(xValue + torque)
-    motors['w'].startPower(-xValue + torque)
+    #motors['n'].startPower(xValue + torque)
+    print("N: " + str(xValue + torque))
+    #motors['s'].startPower(-xValue + torque)
+    print("S: " + str(-xValue + torque))
+    
+    # Y plane motors
+    #motors['e'].startPower(yValue + torque)
+    print("E: " + str(yValue + torque))
+    #motors['w'].startPower(-yValue + torque)
+    print("W: " + str(-yValue + torque))
     
     print xValue, yValue
+    
+    if not dbCol == None:
+        statusData = []
+        for data in dbCol.find():
+            statusData.append(data)
+        socketio.emit("status", statusData)
 
 @socketio.on('poll')
 def poll(data):
