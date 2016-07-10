@@ -4,7 +4,7 @@ from lib.sensors.gps_read import GPSRead
 from lib.sensors.mb7047 import MB7047
 from lib.sensors.vernier_odo import VernierODO
 from lib.database.mongo_write import MongoWrite
-from datetime import datetime
+import lib.main_util as mu
 import time, sys
 
 def valueReplaceScan(value):
@@ -20,7 +20,10 @@ def valueReplaceScan(value):
     return newValue
 
 
-database = datetime.now().strftime("AESR_%Y%m%dT%H%M%S")
+try:
+    database = sys.argv[1]
+except:
+    database = mu.generateTimeName()
 deviceMongo = MongoWrite(database, "data")
 print "Connected to device MongoDB server successfully!"
 
