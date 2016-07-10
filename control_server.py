@@ -79,7 +79,17 @@ def inputControl(data):
     if not dbCol == None:
         statusData = []
         for data in dbCol.find():
-            statusData.append(data)
+            newData = {}
+            if hasattr(data, "atype"):
+                newData["atype"] = data["atype"] 
+            
+            if hasattr(data, "itype"):
+                newData["itype"] = data["itype"] 
+            
+            if hasattr(data, "param"):
+                newData["param"] = data["param"] 
+            
+            statusData.append(newData)
         socketio.emit("status", statusData)
 
 @socketio.on('poll')
