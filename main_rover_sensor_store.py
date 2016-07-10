@@ -7,6 +7,8 @@ from lib.database.mongo_write import MongoWrite
 import lib.main_util as mu
 import time, sys
 
+print "\nImports successfully completed\n"
+
 def valueReplaceScan(value):
     if type(value) == type(list()):
         newValue = []
@@ -24,11 +26,17 @@ try:
     database = sys.argv[1]
 except:
     database = mu.generateTimeName()
+
+print "\n===============>MongoDB<================"
+print "Using database name: \"" + database + "\"" 
+
 deviceMongo = MongoWrite(database, "data")
 print "Connected to device MongoDB server successfully!"
 
 statusMongo = MongoWrite(database, "status")
 print "Connected to status MongoDB server successfully!"
+
+print "\n\n\n"
 
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
