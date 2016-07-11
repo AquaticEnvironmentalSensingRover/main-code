@@ -80,7 +80,7 @@
 				var div = document.getElementById('status');
 				var printStatusData = ""
 				for (var i = 0; i < data.length; i++) {
-					printStatusData = printStatusData + JSON.stringify(i) + "\n"
+					printStatusData = printStatusData + JSON.stringify(data[i]) + "\n"
 				}
 				div.innerHTML = printStatusData + "END"
 			});
