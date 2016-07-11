@@ -90,6 +90,7 @@ def inputControl(data):
                 newData["param"] = data["param"] 
             
             statusData.append(newData)
+        print statusData
         socketio.emit("status", statusData)
 
 @socketio.on('poll')
