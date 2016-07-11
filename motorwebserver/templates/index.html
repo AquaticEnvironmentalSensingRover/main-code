@@ -82,7 +82,7 @@
 				for (var i = 0; i < data.length; i++) {
 					printStatusData = printStatusData + JSON.stringify(data[i]) + "\n"
 				}
-				div.innerHTML = printStatusData + "END"
+				div.innerHTML = div.innerHTML + printStatusData
 			});
 			
 			setInterval(function(){
