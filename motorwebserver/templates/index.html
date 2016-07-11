@@ -28,6 +28,7 @@
 			background-color: #D5CFCD;
 			max-height: 100%;
 			overflow:auto;
+			white-space: nowrap;
 		}
 		#container {
 			width		: 100%;
@@ -78,11 +79,14 @@
 			
 			socket.on('status', function (data) {
 				var div = document.getElementById('status');
-				var printStatusData = "STATUS (NEW->OLD)\n"
+				div.innerHTML = "STATUS (NEW->OLD)\n"
+				div.appendChild(document.createElement("br"));
+				
 				for (var i = 0; i < data.length; i++) {
-					printStatusData = printStatusData + JSON.stringify(data[i]) + "\n"
+					var newData = data[i]
+					div.innerHTML = div.innerHTML + newData.atype + " (" + newData.itype + "): " + newData.param + "\n"
+					div.appendChild(document.createElement("br"));
 				}
-				div.innerHTML = printStatusData
 			});
 			
 			setInterval(function(){
