@@ -79,15 +79,8 @@ def inputControl(data):
     if not dbCol == None:
         statusData = []
         for data in dbCol.find():
-            newData = {}
-            if hasattr(data, "atype"):
-                newData["atype"] = data["atype"] 
-            
-            if hasattr(data, "itype"):
-                newData["itype"] = data["itype"] 
-            
-            if hasattr(data, "param"):
-                newData["param"] = data["param"] 
+            newData = dict(data)
+            del newData[u'_id']
             
             statusData.append(newData)
         print statusData
