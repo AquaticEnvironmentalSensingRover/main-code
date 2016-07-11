@@ -83,7 +83,6 @@ def inputControl(data):
             del newData[u'_id']
             
             statusData.append(newData)
-        print statusData
         socketio.emit("status", statusData)
 
 @socketio.on('poll')
