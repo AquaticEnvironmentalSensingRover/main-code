@@ -47,7 +47,7 @@ def index():
 
 @socketio.on('connect')
 def connect():
-    emit("status", previousStatusData)
+    emit("status", previousStatusData[-10:])
     print("connect")
 
 # NOTE: When getting data from VirtualJoystick, make sure to check if it is
@@ -80,25 +80,29 @@ def inputControl(data):
     print xValue, yValue
     
     if not dbCol == None:
-        collectionLength = dbCol.find().count()
-        if not len(previousStatusData) == collectionLength:
-            print ("NEW STATUS DATA| PREVIOUS= " + str(len(previousStatusData))
-                + " NEW= " +str(collectionLength))
-            newData = []
-            ii = 0
-            for data in dbCol.find().sort([["_id",-1]]):
-                if ii >= collectionLength - len(previousStatusData):
-                    break
-                del data[u'_id']
-                newData.append(data)
-                ii += 1
+        getNewStatusData()
             
-            newData = list(reversed(newData))
-            socketio.emit("status", newData)
-            for data in newData:
-                previousStatusData.append(data)
-            print len(previousStatusData)
-            
+def getNewStatusData():
+    collectionLength = dbCol.find().count()
+    if not len(previousStatusData) == collectionLength:
+        print ("NEW STATUS DATA| PREVIOUS= " + str(len(previousStatusData))
+            + " NEW= " +str(collectionLength))
+        newData = []
+        ii = 0
+        for data in dbCol.find().sort([["_id",-1]]):
+            if ii >= collectionLength - len(previousStatusData):
+                break
+            del data[u'_id']
+            newData.append(data)
+            ii += 1
+        
+        newData = list(reversed(newData))
+        socketio.emit("status", newData)
+        for data in newData:
+            previousStatusData.append(data)
+        print len(previousStatusData)
+    
+
 @socketio.on('poll')
 def poll(data):
     global lastConnectTime
@@ -109,4 +113,5 @@ def disconnect():
     print('disconnect')
     
 if __name__ == '__main__':
+    getNewStatusData()
     socketio.run(app, host="0.0.0.0", port=8000)
