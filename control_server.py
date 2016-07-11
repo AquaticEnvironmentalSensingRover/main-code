@@ -1,4 +1,4 @@
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, send_from_directory
 from lib.sensors.blue_esc import BlueESC
 from lib.sensors.bno055 import BNO055
@@ -27,6 +27,8 @@ imu.setExternalCrystalUse(True)
 
 lastConnectTime = None
 
+previousStatusData = []
+
 # Get status Collection object from inputted database name
 try:
     dbCol = (MongoClient()[sys.argv[1]])["status"]
@@ -45,6 +47,7 @@ def index():
 
 @socketio.on('connect')
 def connect():
+    emit("status", previousStatusData)
     print("connect")
 
 # NOTE: When getting data from VirtualJoystick, make sure to check if it is
@@ -77,14 +80,19 @@ def inputControl(data):
     print xValue, yValue
     
     if not dbCol == None:
-        statusData = []
-        for data in dbCol.find():
-            newData = dict(data)
-            del newData[u'_id']
+        collectionLength = dbCol.find().count()
+        if not len(previousStatusData) == collectionLength:
+            newData = []
+            for ii, data in enumerate(dbCol.find().sort({"_id":-1})):
+                if ii >= collectionLength - len(previousStatusData):
+                    break
+                del data[u'_id']
+                newData.append(data)
+                
+            newData = list(reversed(newData))
+            socketio.emit("status", newData)
+            previousStatusData.append(newData)
             
-            statusData.append(newData)
-        socketio.emit("status", statusData)
-
 @socketio.on('poll')
 def poll(data):
     global lastConnectTime
