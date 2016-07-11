@@ -83,12 +83,14 @@ def inputControl(data):
         collectionLength = dbCol.find().count()
         if not len(previousStatusData) == collectionLength:
             newData = []
-            for ii, data in enumerate(dbCol.find().sort([{"_id":-1}])):
+            ii = 0
+            for data in dbCol.find().sort([{"_id":-1}]):
                 if ii >= collectionLength - len(previousStatusData):
                     break
                 del data[u'_id']
                 newData.append(data)
-                
+                ii += 1
+            
             newData = list(reversed(newData))
             socketio.emit("status", newData)
             previousStatusData.append(newData)
