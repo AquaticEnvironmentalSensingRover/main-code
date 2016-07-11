@@ -84,7 +84,7 @@ def inputControl(data):
         if not len(previousStatusData) == collectionLength:
             newData = []
             ii = 0
-            for data in dbCol.find().sort([{"_id":-1}]):
+            for data in dbCol.find().sort([["_id",-1]]):
                 if ii >= collectionLength - len(previousStatusData):
                     break
                 del data[u'_id']
