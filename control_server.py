@@ -95,7 +95,9 @@ def inputControl(data):
             
             newData = list(reversed(newData))
             socketio.emit("status", newData)
-            previousStatusData.append(newData)
+            for data in newData:
+                previousStatusData.append(data)
+            print len(previousStatusData)
             
 @socketio.on('poll')
 def poll(data):
