@@ -78,11 +78,11 @@
 			
 			socket.on('status', function (data) {
 				var div = document.getElementById('status');
-				var printStatusData = ""
+				var printStatusData = "STATUS (NEW->OLD)\n"
 				for (var i = 0; i < data.length; i++) {
 					printStatusData = printStatusData + JSON.stringify(data[i]) + "\n"
 				}
-				div.innerHTML = div.innerHTML + printStatusData
+				div.innerHTML = printStatusData
 			});
 			
 			setInterval(function(){
@@ -99,7 +99,7 @@
 					+ (joystick.up()	? ' up'		: '')
 					+ (joystick.left()	? ' left'	: '')
 					+ (joystick.down()	? ' down' 	: '')	
-			}, 1/30 * 1000);
+			}, 1/30 * 1100);
 			
 			setInterval(function(){
 				var joyUse = joystick.right() || joystick.up() || joystick.left() || joystick.down()
@@ -109,7 +109,7 @@
 				else {
 					socket.emit("input", {x: 0, y: 0})
 				}
-			}, 1/30 * 8000);
+			}, 1/30 * 10000);
 		</script>
 	</body>
 </html>
