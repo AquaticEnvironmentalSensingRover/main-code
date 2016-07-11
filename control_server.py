@@ -82,6 +82,8 @@ def inputControl(data):
     if not dbCol == None:
         collectionLength = dbCol.find().count()
         if not len(previousStatusData) == collectionLength:
+            print ("NEW STATUS DATA| PREVIOUS= " + len(previousStatusData)
+                + " NEW= " + collectionLength)
             newData = []
             ii = 0
             for data in dbCol.find().sort([["_id",-1]]):
