@@ -56,6 +56,17 @@
 		<script type="text/javascript" src="/static/scripts/virtualjoystick.js"></script>
 		<script type="text/javascript" src="/static/scripts/socket.io-1.4.5.js"></script>
 		<script>
+			function escapeHtml(unsafe) {
+				if (unsafe != null) {
+					return unsafe
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#039;");
+				}
+				return unsafe
+			}
 			var socket = io.connect('http://' + document.domain + ':' + location.port);
 			console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
 			
@@ -84,7 +95,7 @@
 				
 				for (var i = 0; i < data.length; i++) {
 					var newData = data[i]
-					div.innerHTML = div.innerHTML + newData.atype + " (" + newData.itype + "): " + newData.param + "\n"
+					div.innerHTML = div.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + "\n"
 					div.appendChild(document.createElement("br"));
 				}
 			});
