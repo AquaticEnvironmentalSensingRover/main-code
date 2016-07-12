@@ -27,7 +27,7 @@ try:
 except:
     database = mu.generateTimeName()
 
-print "\n===============>MongoDB<================"
+print "\n================>MongoDB<=================="
 print "Using database name: \"" + database + "\"" 
 
 deviceMongo = MongoWrite(database, "data")
@@ -36,7 +36,7 @@ print "Connected to device MongoDB server successfully!"
 statusMongo = MongoWrite(database, "status")
 print "Connected to status MongoDB server successfully!"
 
-print "\n\n\n"
+print "=============================================\n"
 
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
@@ -78,7 +78,7 @@ def readDevice(device, readFunctionName, atype, paramUnit
 # =================Sensor Creation=================
 devices = {}
 
-print "\n============================" 
+print "\n===============>Sensor Setup<================"
 tempSensors = []
 tempSensors.append(createDevice("Temperature 4", MCP9808, 0x18))       # Thermometer closest to the pi
 tempSensors.append(createDevice("Temperature 3", MCP9808, 0x18+4))
@@ -95,9 +95,10 @@ devices["odo"] = createDevice("ODO", VernierODO)
 
 devices["gps"] = createDevice("GPS", GPSRead)
 
+print "=============================================\n"
+
 # Print sensors
-print "============================"
-print "\n============================\nSensors:"
+print "\n===============>Sensor List<================="
 
 # Get keys and values of the "devices" dictionary separately
 keys = []
@@ -112,7 +113,7 @@ printValues = valueReplaceScan(values)
 # Use printing values for "devicesPrint"
 for ii, key in enumerate(keys):
     print str(key) + ": " + str(printValues[ii])
-print "============================\n"
+print "=============================================\n"
 
 #{
 #  ver : <float>
