@@ -94,8 +94,9 @@
 				div.appendChild(document.createElement("br"));
 				
 				for (var i = 0; i < data.length; i++) {
+					var d = new Date();
 					var newData = data[i]
-					div.innerHTML = div.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + "\n"
+					div.innerHTML = div.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(Math.round((d.getTime()/1000) - newData.ts).toString()) + "s ago)\n"
 					div.appendChild(document.createElement("br"));
 				}
 			});
