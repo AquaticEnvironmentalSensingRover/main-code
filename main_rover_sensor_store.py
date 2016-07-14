@@ -80,14 +80,11 @@ devices = {}
 
 print "\n===============>Sensor Setup<================"
 tempSensors = []
-tempSensors.append(createDevice("Temperature 4", MCP9808, 0x18))       # Thermometer closest to the pi
-tempSensors.append(createDevice("Temperature 3", MCP9808, 0x18+4))
-tempSensors.append(createDevice("Temperature 2", MCP9808, 0x18+1))
-tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18+2))
-tempSensors.append(createDevice("Temperature 0", MCP9808, 0x18+3))     # Bottom thermometer
+tempSensors.append(createDevice("Temperature 0", MCP9808, 0x18))       # On pressure and temperature cable
+tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18+1))     # On its own cable
 devices["temperature"] = tempSensors
 
-devices["pressure"] = createDevice("Pressure", MS5803)
+devices["pressure"] = createDevice("Pressure", MS5803, 0x77)
 
 devices["sonar"] = createDevice("Sonar", MB7047)
 
