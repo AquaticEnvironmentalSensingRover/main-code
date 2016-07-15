@@ -85,7 +85,7 @@ tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18+1))     # On its 
 tempSensors.append(createDevice("Temperature 2", MCP9808, 0x18+2))     # Air temperature
 devices["temperature"] = tempSensors
 
-devices["pressure"] = createDevice("Pressure", MS5803, 0x77)
+devices["pressure"] = createDevice("Pressure", MS5803)
 
 devices["sonar"] = createDevice("Sonar", MB7047)
 
