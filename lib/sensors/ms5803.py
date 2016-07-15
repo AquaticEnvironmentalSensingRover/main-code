@@ -53,14 +53,10 @@ class MS5803(sensor.Sensor):
             self.C.append((data[0] << 8) + data[1])
 
         
-<<<<<<< Updated upstream
         # Let it wake up
         time.sleep(0.1)
         
-        ''' Version 1, Older code - works ''' 
-=======
         ''' Version 1, Older code - works 
->>>>>>> Stashed changes
         # Read pressure sensitivity
         data = self.bus.read_i2c_block_data(self.i2cAddress, 0xA2, 2)
         self.C1 = (data[0] << 8) + data[1]
