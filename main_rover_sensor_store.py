@@ -80,8 +80,8 @@ devices = {}
 
 print "\n===============>Sensor Setup<================"
 tempSensors = []
-tempSensors.append(createDevice("Temperature 0", MCP9808, 0x18))       # On pressure and temperature cable
-tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18+1))     # On its own cable
+tempSensors.append(createDevice("Temperature 0", MCP9808, 0x18))       # On its own cable
+tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18+1))     # On long cable with pressure sensor
 tempSensors.append(createDevice("Temperature 2", MCP9808, 0x18+2))     # Air temperature
 devices["temperature"] = tempSensors
 
