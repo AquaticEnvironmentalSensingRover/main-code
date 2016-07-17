@@ -38,6 +38,23 @@ print "Connected to status MongoDB server successfully!"
 
 print "=============================================\n"
 
+def lastMatchingStatusData(atype=None, itype=None):
+    for ii in statusMongo.find().sort([["_id",1]]):
+        newatype = ii.get('atype', None)
+        newitype = ii.get('itype', None)
+        if (newatype == atype) and (newitype == itype):
+            return ii
+    return None
+
+def updateStatusData(message, atype=None, itype=None):
+    global statusMongo
+    oldStatusData = lastMatchingStatusData(atype, itype)
+    newStatusData = message
+    if not oldStatusData == None:
+        statusMongo.update({'_id':oldStatusData['_id']}, {"$set": newStatusData}, upsert=False)
+    else:
+        statusMongo.write(newStatusData)
+
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
         device = sensorConstructor(*args, **kwargs)
@@ -64,12 +81,18 @@ def readDevice(device, readFunctionName, atype, paramUnit
                 writeData["itype"] = itype
             
             deviceMongo.write(writeData)
+            
+            # Update Status
+            updateStatusData({"atype": atype, "itype": itype, "vertype": 1.0
+                            , "ts": time.time(), "param": "OK"}
+                            , atype, itype)
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
-        writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
-                    , "param": str(sys.exc_info()[0])}
-        
+        updateStatusData({"atype": atype, "itype": itype, "vertype": 1.0
+                            , "ts": time.time(), "param": str(sys.exc_info()[0])}
+                            , atype, itype)
+                
         if not itype == None:
             writeData["itype"] = itype
         
