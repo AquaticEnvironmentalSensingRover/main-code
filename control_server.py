@@ -92,6 +92,11 @@ def lastStatus():
             statusData.append(newData)
     return statusData
     
+def normalizeMotorPower(power):
+    min_ = 0
+    max_ = 600
+    return int(max(min_, min(max_, power)))
+    
 @socketio.on('connect')
 def connect():
     emit("status", lastStatus())
@@ -111,18 +116,21 @@ def inputControl(data):
     print "\n" + str(compass)
     
     torque = (((compass[0] - targetBearing)+180)%360) - 180
+    motorPower = {'n': xValue + torque, 's': -xValue + torque
+                , 'e': yValue + torque, 'w': -yValue + torque}
+    motorPower = [normalizeMotorPower(v) for k,v in motorPower]
     
     # X plane motors
-    #motors['n'].startPower(xValue + torque)
-    print("N: " + str(xValue + torque))
-    #motors['s'].startPower(-xValue + torque)
-    print("S: " + str(-xValue + torque))
+    #motors['n'].startPower(motorPower['n'])
+    print("N: " + str(motorPower['n']))
+    #motors['s'].startPower(motorPower['s'])
+    print("S: " + str(motorPower['s']))
     
     # Y plane motors
-    #motors['e'].startPower(yValue + torque)
-    print("E: " + str(yValue + torque))
-    #motors['w'].startPower(-yValue + torque)
-    print("W: " + str(-yValue + torque))
+    #motors['e'].startPower(motorPower['e'])
+    print("E: " + str(motorPower['e']))
+    #motors['w'].startPower(motorPower['w'])
+    print("W: " + str(motorPower['w']))
     
     print xValue, yValue
     
