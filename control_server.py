@@ -3,7 +3,7 @@ from flask import Flask, render_template, send_from_directory
 from lib.sensors.blue_esc import BlueESC
 from lib.sensors.bno055 import BNO055
 from pymongo import MongoClient
-import time, os, sys
+import time, os, sys, math
 
 print "\nImports successfully completed\n"
 
@@ -114,8 +114,9 @@ def inputControl(data):
     compass = imu.getVector(BNO055.VECTOR_EULER)
     
     print "\n" + str(compass)
+    currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
+    torque = (((currentBearing - targetBearing)+180)%360) - 180
     
-    torque = (((compass[0] - targetBearing)+180)%360) - 180
     motorPower = {'n': xValue + torque, 's': -xValue + torque
                 , 'e': yValue + torque, 'w': -yValue + torque}
     motorPower = [normalizeMotorPower(v) for k,v in motorPower]
