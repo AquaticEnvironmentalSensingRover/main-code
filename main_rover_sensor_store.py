@@ -56,7 +56,7 @@ def updateStatusData(message, atype=None, itype=None):
     if not oldStatusData == None:
         dbCol.update({'_id':oldStatusData['_id']}, {"$set": newStatusData}, upsert=False)
     else:
-        dbCol.write(newStatusData)
+        statusMongo.write(newStatusData)
 
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
