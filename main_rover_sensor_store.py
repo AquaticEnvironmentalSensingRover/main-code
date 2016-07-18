@@ -39,7 +39,9 @@ print "Connected to status MongoDB server successfully!"
 print "=============================================\n"
 
 def lastMatchingStatusData(atype=None, itype=None):
-    for ii in statusMongo.find().sort([["_id",1]]):
+    global statusMongo
+    dbCol = statusMongo.dbCol
+    for ii in dbCol.find().sort([["_id",1]]):
         newatype = ii.get('atype', None)
         newitype = ii.get('itype', None)
         if (newatype == atype) and (newitype == itype):
@@ -48,12 +50,13 @@ def lastMatchingStatusData(atype=None, itype=None):
 
 def updateStatusData(message, atype=None, itype=None):
     global statusMongo
+    dbCol = statusMongo.dbCol
     oldStatusData = lastMatchingStatusData(atype, itype)
     newStatusData = message
     if not oldStatusData == None:
-        statusMongo.update({'_id':oldStatusData['_id']}, {"$set": newStatusData}, upsert=False)
+        dbCol.update({'_id':oldStatusData['_id']}, {"$set": newStatusData}, upsert=False)
     else:
-        statusMongo.write(newStatusData)
+        dbCol.write(newStatusData)
 
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
