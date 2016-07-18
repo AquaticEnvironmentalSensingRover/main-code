@@ -92,14 +92,13 @@ def readDevice(device, readFunctionName, atype, paramUnit
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
-        updateStatusData({"atype": atype, "itype": itype, "vertype": 1.0
-                            , "ts": time.time(), "param": str(sys.exc_info()[0])}
-                            , atype, itype)
-                
+        writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
+                    , "param": str(sys.exc_info()[0])}
+        
         if not itype == None:
             writeData["itype"] = itype
-        
-        statusMongo.write(writeData)
+            
+        updateStatusData(writeData, atype, itype)
 
 # =================Sensor Creation=================
 devices = {}
