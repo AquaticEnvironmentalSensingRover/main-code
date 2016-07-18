@@ -5,7 +5,7 @@ from lib.sensors.mb7047 import MB7047
 from lib.sensors.vernier_odo import VernierODO
 from lib.database.mongo_write import MongoWrite
 import lib.main_util as mu
-import time, sys
+import time, sys, datetime
 
 print "\nImports successfully completed\n"
 
@@ -38,6 +38,26 @@ print "Connected to status MongoDB server successfully!"
 
 print "=============================================\n"
 
+def lastMatchingStatusData(atype=None, itype=None):
+    global statusMongo
+    dbCol = statusMongo.dbCol
+    for ii in dbCol.find().sort([["_id",1]]):
+        newatype = ii.get('atype', None)
+        newitype = ii.get('itype', None)
+        if (newatype == atype) and (newitype == itype):
+            return ii
+    return None
+
+def updateStatusData(message, atype=None, itype=None):
+    global statusMongo
+    dbCol = statusMongo.dbCol
+    oldStatusData = lastMatchingStatusData(atype, itype)
+    newStatusData = message
+    if not oldStatusData == None:
+        dbCol.update({'_id':oldStatusData['_id']}, {"$set": newStatusData}, upsert=False)
+    else:
+        statusMongo.write(newStatusData)
+
 def createDevice(deviceType, sensorConstructor, *args, **kwargs):
     try:
         device = sensorConstructor(*args, **kwargs)
@@ -53,27 +73,39 @@ def createDevice(deviceType, sensorConstructor, *args, **kwargs):
 
 def readDevice(device, readFunctionName, atype, paramUnit
                 , comments = [], tags = [], itype = None, vertype = 1.0):
+    
+    currentTime = time.time()
+    baseWriteData = {"atype": atype, "ts": currentTime
+                , "tss": datetime.datetime.fromtimestamp(currentTime)}
+    if not itype == None:
+        baseWriteData["itype"] = itype
+        
     try:
         if not device == None:
             # Write device read data to data collection
             param = getattr(device, readFunctionName)()
-            writeData = {"atype": atype, "vertype": vertype, "ts": time.time()
-                        , "param": param, "paramunit": paramUnit
-                        , "comments": comments, "tags": tags}
-            if not itype == None:
-                writeData["itype"] = itype
+            writeData = dict(baseWriteData)
+            writeData["vertype"]= vertype
+            writeData["param"]= param
+            writeData["paramunit"]= paramUnit
+            writeData["comments"]= comments
+            writeData["tags"]= tags
             
             deviceMongo.write(writeData)
+            
+            # Update Status
+            writeData = dict(baseWriteData)
+            writeData["vertype"]= 1.0
+            writeData["param"]= "OK"
+            updateStatusData(writeData, atype, itype)
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
-        writeData = {"atype": atype, "vertype": 1.0, "ts": time.time()
-                    , "param": str(sys.exc_info()[0])}
+        writeData = dict(baseWriteData)
+        writeData["vertype"]= 1.0
+        writeData["param"]= str(sys.exc_info()[0])
         
-        if not itype == None:
-            writeData["itype"] = itype
-        
-        statusMongo.write(writeData)
+        updateStatusData(writeData, atype, itype)
 
 # =================Sensor Creation=================
 devices = {}
