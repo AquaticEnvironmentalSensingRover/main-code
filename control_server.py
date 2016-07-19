@@ -78,7 +78,7 @@ def inputControl(data):
     
     motorPower = {'n': xValue + torque, 's': -xValue + torque
                 , 'e': yValue + torque, 'w': -yValue + torque}
-    motorPower = [normalizeMotorPower(v) for k,v in motorPower]
+    motorPower = [normalizeMotorPower(v) for k,v in motorPower.iteritems()]
     
     # X plane motors
     #motors['n'].startPower(motorPower['n'])
