@@ -18,10 +18,22 @@
 			padding		: 5px;
 			text-align	: center;
 		}
-		#status {
+		#statusData {
 			position	: absolute;
 			top		: 0px;
 			right		: 0px;
+			width		: 25%;
+			padding		: 5px;
+			text-align	: center;
+			background-color: #D5CFCD;
+			max-height: 100%;
+			overflow:auto;
+			white-space: nowrap;
+		}
+		#statusInfo {
+			position	: absolute;
+			top		: 0px;
+			left		: 0px;
 			width		: 25%;
 			padding		: 5px;
 			text-align	: center;
@@ -50,8 +62,9 @@
 			-
 			works with mouse too
 			<br/>
-		<div id="status">STATUS (NEW->OLD)<br/></div>
-			<span id="result"></span>
+		<div id="statusInfo">OTHER STATUS<br/></div>
+		<div id="statusData">STATUS (NEW->OLD)<br/></div>
+		<span id="result"></span>
 		</div>
 		<script type="text/javascript" src="/static/scripts/virtualjoystick.js"></script>
 		<script type="text/javascript" src="/static/scripts/socket.io-1.4.5.js"></script>
@@ -73,6 +86,7 @@
 			var joyRadius = 140
 			
 			var statusData = []
+			var lastStatusDataTime = null
 			
 			var joystick	= new VirtualJoystick({
 				container	: document.getElementById('container'),
@@ -90,21 +104,33 @@
 				console.log('release')
 			})
 			
+			// Update statusData variable on status data receive
 			socket.on('status', function (data) {
 				statusData = data
+				lastStatusDataTime = (new Date()).getTime()
 			});
 			
-			
+			// Status display updating
 			setInterval(function(){
-				var div = document.getElementById('status');
-				div.innerHTML = "STATUS (NEW->OLD)\n"
-				div.appendChild(document.createElement("br"));
+				// Status data DIV:
+				var statusDataDiv = document.getElementById('statusData');
+				statusDataDiv.innerHTML = "STATUS (NEW->OLD)\n"
+				statusDataDiv.appendChild(document.createElement("br"));
 				
 				for (var i = 0; i < statusData.length; i++) {
 					var d = new Date();
 					var newData = statusData[i]
-					div.innerHTML = div.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(Math.round((d.getTime()/1000) - newData.ts).toString()) + "s ago)\n"
-					div.appendChild(document.createElement("br"));
+					statusDataDiv.innerHTML = statusDataDiv.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(Math.round((d.getTime()/1000) - newData.ts).toString()) + "s ago)\n"
+					statusDataDiv.appendChild(document.createElement("br"));
+				}
+				
+				// Other status DIV:
+				var statusInfoDiv = document.getElementById('statusInfo');
+				statusInfoDiv.innerHTML = "Last status update: "
+				if (lastStatusDataTime != null) {
+					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + escapeHtml(Math.round(d.getTime() - lastStatusDataTime).toString()) + "s ago"
+				} else {
+					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + " null"
 				}
 			}, 1/30 * 1100);
 			
