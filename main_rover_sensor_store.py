@@ -101,7 +101,7 @@ def readDevice(device, readFunctionName, atype, paramUnit
             writeData["param"]= "OK"
             updateStatusData(writeData, atype, itype)
         else:
-            raise StartError
+            raise StartError("Start error")
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
