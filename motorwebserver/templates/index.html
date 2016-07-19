@@ -128,7 +128,7 @@
 				var statusInfoDiv = document.getElementById('statusInfo');
 				statusInfoDiv.innerHTML = "Last status update: "
 				if (lastStatusDataTime != null) {
-					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + escapeHtml(Math.round(d.getTime() - lastStatusDataTime).toString()) + "s ago"
+					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + escapeHtml(((d.getTime() - lastStatusDataTime)/1000).toFixed(1).toString()) + "s ago"
 				} else {
 					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + " null"
 				}
