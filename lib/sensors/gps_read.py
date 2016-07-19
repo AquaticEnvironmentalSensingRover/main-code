@@ -42,7 +42,7 @@ class GPSRead:
     
     def readLocationData(self):
         if self.locationData == None:
-            raise ValueError("A read has not been succesfully completed yet")
+            raise ValueError("No successful reads")
         if time.time() - self.timeOfRead > self._VALID_READ_TIME:
-            raise ValueError("The last data has expired")
+            raise ValueError("No recent reads")
         return self.locationData
