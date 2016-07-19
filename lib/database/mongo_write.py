@@ -2,7 +2,7 @@ import time
 from pymongo import MongoClient
 
 class MongoWrite:
-    def __init__(self, db, col, startMessage= True, *args, **kwargs):
+    def __init__(self, db, col, startMessage= False, *args, **kwargs):
         # Create collection object
         self.dbCol = ((MongoClient(*args, **kwargs))[db])[col]
         
