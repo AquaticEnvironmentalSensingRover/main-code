@@ -72,6 +72,8 @@
 			
 			var joyRadius = 140
 			
+			var statusData = []
+			
 			var joystick	= new VirtualJoystick({
 				container	: document.getElementById('container'),
 				mouseSupport	: true,
@@ -89,17 +91,22 @@
 			})
 			
 			socket.on('status', function (data) {
+				statusData = data
+			});
+			
+			
+			setInterval(function(){
 				var div = document.getElementById('status');
 				div.innerHTML = "STATUS (NEW->OLD)\n"
 				div.appendChild(document.createElement("br"));
 				
-				for (var i = 0; i < data.length; i++) {
+				for (var i = 0; i < statusData.length; i++) {
 					var d = new Date();
-					var newData = data[i]
+					var newData = statusData[i]
 					div.innerHTML = div.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(Math.round((d.getTime()/1000) - newData.ts).toString()) + "s ago)\n"
 					div.appendChild(document.createElement("br"));
 				}
-			});
+			}, 1/30 * 1100);
 			
 			setInterval(function(){
 				var joyUse = joystick.right() || joystick.up() || joystick.left() || joystick.down()
