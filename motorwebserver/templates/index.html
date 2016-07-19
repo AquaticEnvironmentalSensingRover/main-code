@@ -80,6 +80,16 @@
 				}
 				return unsafe
 			}
+			
+			function getIfExistsStr(suffix, element, prefix) {
+				if (element != null) {
+					return suffix + element.toString() + prefix
+				} else {
+					return ""
+				}
+			}
+			
+			
 			var socket = io.connect('http://' + document.domain + ':' + location.port);
 			console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
 			
@@ -120,7 +130,10 @@
 				for (var i = 0; i < statusData.length; i++) {
 					var d = new Date();
 					var newData = statusData[i]
-					statusDataDiv.innerHTML = statusDataDiv.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(((d.getTime()/1000) - newData.ts).toFixed(1).toString()) + "s ago)\n"
+					statusDataDiv.innerHTML = statusDataDiv.innerHTML + escapeHtml(getIfExistsStr("", newData.atype, ""))
+											+ escapeHtml(getIfExistsStr(" (", newData.itype, ")"))
+											+ escapeHtml(getIfExistsStr(": ", newData.param, ""))
+											+ escapeHtml(getIfExistsStr(" (",((d.getTime()/1000) - newData.ts).toFixed(1), "s ago)\n"))
 					statusDataDiv.appendChild(document.createElement("br"));
 				}
 				
