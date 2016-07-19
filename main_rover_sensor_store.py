@@ -103,7 +103,7 @@ def readDevice(device, readFunctionName, atype, paramUnit
     except:
         writeData = dict(baseWriteData)
         writeData["vertype"]= 1.0
-        writeData["param"]= str(sys.exc_info()[0])
+        writeData["param"]= str(sys.exc_info()[1])
         
         updateStatusData(writeData, atype, itype)
 
