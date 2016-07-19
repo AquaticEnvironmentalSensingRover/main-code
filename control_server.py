@@ -45,51 +45,11 @@ def index():
     """Serve the client-side application."""
     return render_template('index.html')
 
-def getNewStatusData():
-    global dbCol
-    collectionLength = dbCol.find().count()
-    if not len(previousStatusData) == collectionLength:
-        print ("NEW STATUS DATA| PREVIOUS= " + str(len(previousStatusData))
-            + " NEW= " +str(collectionLength))
-        newData = []
-        ii = 0
-        for data in dbCol.find().sort([["_id",1]]):
-            if ii >= collectionLength - len(previousStatusData):
-                break
-            del data[u'_id']
-            newData.append(data)
-            ii += 1
-        
-        newData = list(reversed(newData))
-        socketio.emit("status", newData)
-        for data in newData:
-            previousStatusData.append(data)
-        print len(previousStatusData)
-
-def returnDictAttr(inputDict, attr, defaultValue = None):
-    try:
-        return inputDict[attr]
-    except:
-        return defaultValue
-
-def typesExist(atype, itype, arrayDict):
-    for d in arrayDict:
-        if d.get('atype', None) == atype and d.get('itype', None) == itype:
-            return True
-    return False
-
-def lastStatus():
+def getStatusData():
     statusData = []
-    for ii in previousStatusData:
-        atype = ii.get('atype', None)
-        itype = ii.get('itype', None)
-        if not typesExist(atype, itype, statusData):
-            newData = {}
-            newData['atype']= atype
-            newData['itype']= itype
-            newData['ts']= ii.get('ts', None)
-            newData['param']= ii.get('param', None)
-            statusData.append(newData)
+    for data in dbCol.find().sort([["_id",1]]):
+        del data[u'_id']
+        statusData.append(data)
     return statusData
     
 def normalizeMotorPower(power):
@@ -99,7 +59,6 @@ def normalizeMotorPower(power):
     
 @socketio.on('connect')
 def connect():
-    emit("status", lastStatus())
     print("connect")
 
 # NOTE: When getting data from VirtualJoystick, make sure to check if it is
@@ -136,8 +95,7 @@ def inputControl(data):
     print xValue, yValue
     
     if not dbCol == None:
-        getNewStatusData()
-        emit("status", lastStatus())
+        emit("status", getStatusData())
 
 @socketio.on('poll')
 def poll(data):
@@ -149,6 +107,4 @@ def disconnect():
     print('disconnect')
     
 if __name__ == '__main__':
-    if not dbCol == None:
-        getNewStatusData()
     socketio.run(app, host="0.0.0.0", port=8000)
