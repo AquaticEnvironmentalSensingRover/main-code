@@ -9,6 +9,11 @@ import time, sys, datetime
 
 print "\nImports successfully completed\n"
 
+class StartError(Exception):
+    def __init__(self, *args, **kwargs):
+        # Call the base class constructor
+        super(StartError, self).__init__(*args, **kwargs)
+
 def valueReplaceScan(value):
     if type(value) == type(list()):
         newValue = []
@@ -64,9 +69,6 @@ def createDevice(deviceType, sensorConstructor, *args, **kwargs):
         print(deviceType + " device was successfully initialized!")
     except:
         print "Failed setting up " + deviceType + " device"
-        statusMongo.write({"atype": "STARTALERT", "vertype": 1.0, "ts": time.time()
-                            , "itype": deviceType, "comments": ["Failed to set up"]
-                            , "tags": ["failed", "setup", "set up"]})
         device = None
     finally:
         return device
@@ -98,6 +100,8 @@ def readDevice(device, readFunctionName, atype, paramUnit
             writeData["vertype"]= 1.0
             writeData["param"]= "OK"
             updateStatusData(writeData, atype, itype)
+        else:
+            raise StartError
     except KeyboardInterrupt:
         raise sys.exc_info()
     except:
