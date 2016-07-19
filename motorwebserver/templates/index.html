@@ -120,7 +120,7 @@
 				for (var i = 0; i < statusData.length; i++) {
 					var d = new Date();
 					var newData = statusData[i]
-					statusDataDiv.innerHTML = statusDataDiv.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(Math.round((d.getTime()/1000) - newData.ts).toString()) + "s ago)\n"
+					statusDataDiv.innerHTML = statusDataDiv.innerHTML + escapeHtml(newData.atype) + " (" + escapeHtml(newData.itype) + "): " + escapeHtml(newData.param) + " (" + escapeHtml(((d.getTime()/1000) - newData.ts).toFixed(1).toString()) + "s ago)\n"
 					statusDataDiv.appendChild(document.createElement("br"));
 				}
 				
