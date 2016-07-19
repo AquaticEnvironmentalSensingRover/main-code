@@ -76,7 +76,7 @@ def readDevice(device, readFunctionName, atype, paramUnit
     
     currentTime = time.time()
     baseWriteData = {"atype": atype, "ts": currentTime
-                , "tss": datetime.datetime.fromtimestamp(currentTime)}
+                , "tss": datetime.datetime.fromtimestamp(currentTime).strftime("%b %d, %Y %H:%M.%S")}
     if not itype == None:
         baseWriteData["itype"] = itype
         
