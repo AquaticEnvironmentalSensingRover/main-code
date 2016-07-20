@@ -93,6 +93,8 @@
 			var socket = io.connect('http://' + document.domain + ':' + location.port);
 			console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
 			
+			var maxDeviceStatusTime = 4
+			
 			var joyRadius = 140
 			
 			var statusData = []
@@ -130,10 +132,19 @@
 				for (var i = 0; i < statusData.length; i++) {
 					var d = new Date();
 					var newData = statusData[i]
-					statusDataDiv.innerHTML = statusDataDiv.innerHTML + escapeHtml(getIfExistsStr("", newData.atype, ""))
-											+ escapeHtml(getIfExistsStr(" (", newData.itype, ")"))
-											+ escapeHtml(getIfExistsStr(": ", newData.param, ""))
-											+ escapeHtml(getIfExistsStr(" (",((d.getTime()/1000) - newData.ts).toFixed(1), "s ago)\n"))
+					
+					lastTime = (d.getTime()/1000) - newData.ts
+					newStatusText = escapeHtml(getIfExistsStr("", newData.atype, ""))
+									+ escapeHtml(getIfExistsStr(" (", newData.itype, ")"))
+									+ escapeHtml(getIfExistsStr(": ", newData.param, ""))
+									+ escapeHtml(getIfExistsStr(" (",lastTime.toFixed(1), "s ago)\n"))
+					
+					if (lastTime > maxDeviceStatusTime) {
+						newStatusText = "<mark> " + newStatusText + " </mark>"
+					}
+					
+					statusDataDiv.innerHTML = statusDataDiv.innerHTML + newStatusText
+					
 					statusDataDiv.appendChild(document.createElement("br"));
 				}
 				
