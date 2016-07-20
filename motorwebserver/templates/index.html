@@ -141,9 +141,19 @@
 				var statusInfoDiv = document.getElementById('statusInfo');
 				statusInfoDiv.innerHTML = "Last status update: "
 				if (lastStatusDataTime != null) {
-					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + escapeHtml(((d.getTime() - lastStatusDataTime)/1000).toFixed(1).toString()) + "s ago"
+					timeFromLastUpdate = (d.getTime() - lastStatusDataTime)/1000
+					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + escapeHtml(timeFromLastUpdate.toFixed(1).toString()) + "s ago"
+					
+					// If the last status time is very recent, color it green
+					if (timeFromLastUpdate < 2) {statusInfoDiv.style.color = "#38bc20";}
+					// If the last status time is less recent, color it yellow
+					else if (timeFromLastUpdate < 4) {statusInfoDiv.style.color = "#b9a21c";}
+					// If the last status time is old, color it red
+					else {statusInfoDiv.style.color = "#f23131";}
 				} else {
 					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + " null"
+					// Color the text black if it is null
+					statusInfoDiv.style.color = "#000000";
 				}
 			}, 1/30 * 1100);
 			
