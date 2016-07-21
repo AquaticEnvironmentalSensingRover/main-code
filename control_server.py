@@ -90,7 +90,8 @@ def inputControl(data):
         currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
         torque = (((currentBearing - targetBearing)+180)%360) - 180
         
-    print str(compass)
+    print "Bearing: " + str(currentBearing)
+    print "Torque: " + str(torque)
     
     motorPower = {'n': xValue + torque, 's': -xValue + torque
                 , 'e': yValue + torque, 'w': -yValue + torque}
