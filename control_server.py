@@ -1,6 +1,5 @@
 from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, send_from_directory
-from lib.sensors.bno055 import BNO055
 from pymongo import MongoClient
 import time, os, sys, math
 
@@ -25,9 +24,15 @@ except:
     motors = None
 
 # BNO055 sensor setup
-imu = BNO055()
-time.sleep(1)
-imu.setExternalCrystalUse(True)
+try:
+    from lib.sensors.bno055 import BNO055
+    imu = BNO055()
+    time.sleep(1)
+    imu.setExternalCrystalUse(True)
+except:
+    print "IMU setup error: " + str(sys.exec_info())
+    print "Disabling IMU..."
+    imu = None
 
 lastConnectTime = None
 
@@ -77,11 +82,15 @@ def inputControl(data):
     print "\n"
     print xValue, yValue
     
-    compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
-    
+    compass = None
+    currentBearing = None
+    torque = 0
+    if not imu == None:
+        compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
+        currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
+        torque = (((currentBearing - targetBearing)+180)%360) - 180
+        
     print str(compass)
-    currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
-    torque = (((currentBearing - targetBearing)+180)%360) - 180
     
     motorPower = {'n': xValue + torque, 's': -xValue + torque
                 , 'e': yValue + torque, 'w': -yValue + torque}
