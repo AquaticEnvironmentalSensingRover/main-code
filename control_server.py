@@ -18,7 +18,11 @@ app = Flask(__name__, static_folder = WEBSERVER_FOLDER_NAME + "/static"
 socketio = SocketIO(app)
 
 # BlueESC instances
-motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
+try:
+    motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
+except:
+    print "Motor setup error: " + str(sys.exec_info())
+    motors = None
 
 # BNO055 sensor setup
 imu = BNO055()
@@ -70,9 +74,12 @@ def inputControl(data):
     xValue = int(data['x']*gain)
     yValue = int(data['y']*gain)
     
+    print "\n"
+    print xValue, yValue
+    
     compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
     
-    print "\n" + str(compass)
+    print str(compass)
     currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
     torque = (((currentBearing - targetBearing)+180)%360) - 180
     
@@ -80,19 +87,19 @@ def inputControl(data):
                 , 'e': yValue + torque, 'w': -yValue + torque}
     motorPower = {k:normalizeMotorPower(v) for k,v in motorPower.iteritems()}
     
-    # X plane motors
-    motors['n'].startPower(motorPower['n'])
     print("N: " + str(motorPower['n']))
-    motors['s'].startPower(motorPower['s'])
     print("S: " + str(motorPower['s']))
-    
-    # Y plane motors
-    motors['e'].startPower(motorPower['e'])
     print("E: " + str(motorPower['e']))
-    motors['w'].startPower(motorPower['w'])
     print("W: " + str(motorPower['w']))
     
-    print xValue, yValue
+    if type(motors) == type(dict()):
+        # X plane motors
+        motors['n'].startPower(motorPower['n'])
+        motors['s'].startPower(motorPower['s'])
+        
+        # Y plane motors
+        motors['e'].startPower(motorPower['e'])
+        motors['w'].startPower(motorPower['w'])
     
     if not dbCol == None:
         emit("status", getStatusData())
