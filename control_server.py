@@ -53,8 +53,8 @@ def getStatusData():
     return statusData
     
 def normalizeMotorPower(power):
-    min_ = 0
     max_ = 600
+    min_ = -max_
     return int(max(min_, min(max_, power)))
     
 @socketio.on('connect')
