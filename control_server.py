@@ -20,7 +20,7 @@ try:
     from lib.sensors.blue_esc import BlueESC
     motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
 except:
-    print "Motor setup error: " + str(sys.exec_info())
+    print "Motor setup error: " + str(sys.exc_info()[1])
     motors = None
 
 # BNO055 sensor setup
@@ -30,7 +30,7 @@ try:
     time.sleep(1)
     imu.setExternalCrystalUse(True)
 except:
-    print "IMU setup error: " + str(sys.exec_info())
+    print "IMU setup error: " + str(sys.exc_info()[1])
     print "Disabling IMU..."
     imu = None
 
