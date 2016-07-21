@@ -70,7 +70,7 @@ def inputControl(data):
     xValue = int(data['x']*gain)
     yValue = int(data['y']*gain)
     
-    compass = imu.getVector(BNO055.VECTOR_EULER)
+    compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
     
     print "\n" + str(compass)
     currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
