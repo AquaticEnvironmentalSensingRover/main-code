@@ -70,10 +70,10 @@ def inputControl(data):
     xValue = int(data['x']*gain)
     yValue = int(data['y']*gain)
     
-    compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
+    compass = imu.getVector(BNO055.VECTOR_EULER)
     
     print "\n" + str(compass)
-    currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
+    currentBearing = compass[0]
     torque = (((currentBearing - targetBearing)+180)%360) - 180
     
     motorPower = {'n': xValue + torque, 's': -xValue + torque
