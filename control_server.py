@@ -1,6 +1,5 @@
 from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, send_from_directory
-from lib.sensors.blue_esc import BlueESC
 from lib.sensors.bno055 import BNO055
 from pymongo import MongoClient
 import time, os, sys, math
@@ -19,6 +18,7 @@ socketio = SocketIO(app)
 
 # BlueESC instances
 try:
+    from lib.sensors.blue_esc import BlueESC
     motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
 except:
     print "Motor setup error: " + str(sys.exec_info())
