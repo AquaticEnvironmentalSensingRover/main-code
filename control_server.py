@@ -79,8 +79,8 @@ def inputControl(data):
     xValue = int(data['x']*gain)
     yValue = int(data['y']*gain)
     
-    print "\n"
-    print xValue, yValue
+    print "\n===================================="
+    print "Joy X:", xValue, "|", "Joy Y:", yValue
     
     compass = None
     currentBearing = None
@@ -97,10 +97,12 @@ def inputControl(data):
                 , 'e': yValue + torque, 'w': -yValue + torque}
     motorPower = {k:normalizeMotorPower(v) for k,v in motorPower.iteritems()}
     
+    print "\nMotors: "
     print("N: " + str(motorPower['n']))
     print("S: " + str(motorPower['s']))
     print("E: " + str(motorPower['e']))
     print("W: " + str(motorPower['w']))
+    print "===================================="
     
     if type(motors) == type(dict()):
         # X plane motors
