@@ -25,6 +25,7 @@ try:
     motors = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b), "r": BlueESC(0x2c)}
 except:
     print "Motor setup error: " + str(sys.exc_info()[1])
+    print "Disabling motors..."
     motors = None
 
 # BNO055 sensor setup
@@ -34,7 +35,7 @@ try:
     time.sleep(1)
     imu.setExternalCrystalUse(True)
 except:
-    print "IMU setup error: " + str(sys.exc_info()[1])
+    print "\nIMU setup error: " + str(sys.exc_info()[1])
     print "Disabling IMU..."
     imu = None
 
@@ -86,10 +87,10 @@ def inputControl(data):
     print "\n===================================="
     print "Joy X:", xValue, "|", "Joy Y:", yValue
     
+    # IMU Compass:
     compass = None
     currentBearing = None
     compassTorque = 0
-    torque = 0
     if not imu == None:
         compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
         currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
@@ -98,6 +99,8 @@ def inputControl(data):
     print "Bearing: " + str(currentBearing)
     print "Compass Torque: " + str(compassTorque)
     
+    # Motor power calculation:
+    torque = 0
     if CONTROL_MODE == "R":
         torque = xValue
         motorPower = {'f': torque, 'b': -torque
@@ -112,6 +115,7 @@ def inputControl(data):
     
     motorPower = {k:normalizeMotorPower(v) for k,v in motorPower.iteritems()}
     
+    # Print motor speeds:
     print "\nMotors: "
     print("F: " + str(motorPower['f']))
     print("B: " + str(motorPower['b']))
@@ -119,6 +123,7 @@ def inputControl(data):
     print("R: " + str(motorPower['r']))
     print "===================================="
     
+    # Update motor speeds if they were setup correctly:
     if type(motors) == type(dict()):
         # X plane motors
         motors['f'].startPower(motorPower['f'])
@@ -128,6 +133,7 @@ def inputControl(data):
         motors['l'].startPower(motorPower['l'])
         motors['r'].startPower(motorPower['r'])
     
+    # Emit status data if collection was supplied:
     if not dbCol == None:
         emit("status", getStatusData())
 
