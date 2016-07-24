@@ -18,7 +18,7 @@ socketio = SocketIO(app)
 # BlueESC instances
 try:
     from lib.sensors.blue_esc import BlueESC
-    motors = {"n": BlueESC(0x2a), "s": BlueESC(0x2b), "e": BlueESC(0x2c), "w": BlueESC(0x2d)}
+    motors = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b), "r": BlueESC(0x2c)}
 except:
     print "Motor setup error: " + str(sys.exc_info()[1])
     motors = None
@@ -93,25 +93,25 @@ def inputControl(data):
     print "Bearing: " + str(currentBearing)
     print "Torque: " + str(torque)
     
-    motorPower = {'n': xValue + torque, 's': -xValue + torque
-                , 'e': yValue + torque, 'w': -yValue + torque}
+    motorPower = {'f': xValue + torque, 'b': xValue - torque
+                , 'l': yValue + torque, 'r': yValue - torque}
     motorPower = {k:normalizeMotorPower(v) for k,v in motorPower.iteritems()}
     
     print "\nMotors: "
-    print("N: " + str(motorPower['n']))
-    print("S: " + str(motorPower['s']))
-    print("E: " + str(motorPower['e']))
-    print("W: " + str(motorPower['w']))
+    print("F: " + str(motorPower['f']))
+    print("B: " + str(motorPower['b']))
+    print("L: " + str(motorPower['l']))
+    print("R: " + str(motorPower['r']))
     print "===================================="
     
     if type(motors) == type(dict()):
         # X plane motors
-        motors['n'].startPower(motorPower['n'])
-        motors['s'].startPower(motorPower['s'])
+        motors['f'].startPower(motorPower['f'])
+        motors['b'].startPower(motorPower['b'])
         
         # Y plane motors
-        motors['e'].startPower(motorPower['e'])
-        motors['w'].startPower(motorPower['w'])
+        motors['l'].startPower(motorPower['l'])
+        motors['r'].startPower(motorPower['r'])
     
     if not dbCol == None:
         emit("status", getStatusData())
