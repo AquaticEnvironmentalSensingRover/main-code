@@ -141,4 +141,9 @@ def disconnect():
     print('disconnect')
     
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=8000)
+    try:
+        socketio.run(app, host="0.0.0.0", port=8000)
+    except KeyboardInterrupt:
+        if type(motors) == type(dict()):
+            for k, v in motors:
+                motors[k].setPower(0)
