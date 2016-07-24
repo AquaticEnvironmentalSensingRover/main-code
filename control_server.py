@@ -6,9 +6,13 @@ import time, os, sys, math
 print "\nImports successfully completed\n"
 
 # Static Variables
+CONTROL_MODE = "R"
+# "R": Rotation mode (Y: Strafe, X: Angle)
+# "S": Strafe mode (Y: Strafe, X: Strafe)
+
+
 DEBUG = True
 WEBSERVER_FOLDER_NAME = "motorwebserver"
-
 
 # Dynamic Variables
 app = Flask(__name__, static_folder = WEBSERVER_FOLDER_NAME + "/static"
@@ -84,17 +88,28 @@ def inputControl(data):
     
     compass = None
     currentBearing = None
+    compassTorque = 0
     torque = 0
     if not imu == None:
         compass = imu.getVector(BNO055.VECTOR_MAGNETOMETER)
         currentBearing = math.atan2(compass[1],compass[0])*180/math.pi
-        torque = (((currentBearing - targetBearing)+180)%360) - 180
+        compassTorque = (((currentBearing - targetBearing)+180)%360) - 180
         
     print "Bearing: " + str(currentBearing)
-    print "Torque: " + str(torque)
+    print "Compass Torque: " + str(compassTorque)
     
-    motorPower = {'f': xValue + torque, 'b': xValue - torque
-                , 'l': yValue + torque, 'r': yValue - torque}
+    if CONTROL_MODE == "R":
+        torque = xValue
+        motorPower = {'f': torque, 'b': -torque
+                    , 'l': yValue, 'r': yValue}
+        
+    else: # Strafe mode
+        torque = compassTorque
+        motorPower = {'f': xValue + torque, 'b': xValue - torque
+                    , 'l': yValue + torque, 'r': yValue - torque}
+    
+    print "Torque: " + str(compassTorque)
+    
     motorPower = {k:normalizeMotorPower(v) for k,v in motorPower.iteritems()}
     
     print "\nMotors: "
