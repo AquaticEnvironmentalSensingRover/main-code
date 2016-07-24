@@ -111,7 +111,7 @@ def inputControl(data):
         motorPower = {'f': xValue + torque, 'b': xValue - torque
                     , 'l': yValue + torque, 'r': yValue - torque}
     
-    print "Torque: " + str(compassTorque)
+    print "Torque: " + str(torque)
     
     motorPower = {k:normalizeMotorPower(v) for k,v in motorPower.iteritems()}
     
