@@ -62,7 +62,7 @@ def getStatusData():
     return statusData
     
 def normalizeMotorPower(power):
-    max_ = 600
+    max_ = 10
     min_ = -max_
     return int(max(min_, min(max_, power)))
     
@@ -75,7 +75,7 @@ def connect():
 @socketio.on('input')
 def inputControl(data):
     targetBearing = 10
-    gain = 32767/80
+    gain = 10 #32767/80
     xValue = int(data['x']*gain)
     yValue = int(data['y']*gain)
     
