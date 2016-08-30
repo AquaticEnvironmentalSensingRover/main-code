@@ -3,7 +3,7 @@
 		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		
+
 		<style>
 		body {
 			overflow	: hidden;
@@ -80,7 +80,7 @@
 				}
 				return unsafe
 			}
-			
+
 			function getIfExistsStr(suffix, element, prefix) {
 				if (element != null) {
 					return suffix + element.toString() + prefix
@@ -88,18 +88,18 @@
 					return ""
 				}
 			}
-			
-			
+
+
 			var socket = io.connect('http://' + document.domain + ':' + location.port);
 			console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
-			
+
 			var maxDeviceStatusTime = 4
-			
+
 			var joyRadius = 140
-			
+
 			var statusData = []
 			var lastStatusDataTime = null
-			
+
 			var joystick	= new VirtualJoystick({
 				container	: document.getElementById('container'),
 				mouseSupport	: true,
@@ -115,46 +115,47 @@
 			joystick.addEventListener('touchEnd', function(){
 				console.log('release')
 			})
-			
+
 			// Update statusData variable on status data receive
 			socket.on('status', function (data) {
 				statusData = data
 				lastStatusDataTime = (new Date()).getTime()
 			});
-			
+
+
 			// Status display updating
 			setInterval(function(){
 				// Status data DIV:
 				var statusDataDiv = document.getElementById('statusData');
 				statusDataDiv.innerHTML = "STATUS (NEW->OLD)\n"
 				statusDataDiv.appendChild(document.createElement("br"));
-				
+
 				for (var i = 0; i < statusData.length; i++) {
 					var d = new Date();
 					var newData = statusData[i]
-					
+
 					lastTime = (d.getTime()/1000) - newData.ts
 					newStatusText = escapeHtml(getIfExistsStr("", newData.atype, ""))
 									+ escapeHtml(getIfExistsStr(" (", newData.itype, ")"))
 									+ escapeHtml(getIfExistsStr(": ", newData.param, ""))
 									+ escapeHtml(getIfExistsStr(" (",lastTime.toFixed(1), "s ago)\n"))
-					
+
 					if (lastTime > maxDeviceStatusTime) {
 						newStatusText = "<mark> " + newStatusText + " </mark>"
 					}
-					
+
 					statusDataDiv.innerHTML = statusDataDiv.innerHTML + newStatusText
-					
+
 					statusDataDiv.appendChild(document.createElement("br"));
 				}
-				
+
 				// Other status DIV:
 				var statusInfoDiv = document.getElementById('statusInfo');
 				statusInfoDiv.innerHTML = "Last status update: "
 				if (lastStatusDataTime != null) {
 					timeFromLastUpdate = (d.getTime() - lastStatusDataTime)/1000
 					statusInfoDiv.innerHTML = statusInfoDiv.innerHTML + escapeHtml(timeFromLastUpdate.toFixed(1).toString()) + "s ago"
-					
+
 					// If the last status time is very recent, color it green
 					if (timeFromLastUpdate < 2) {statusInfoDiv.style.color = "#38bc20";}
 					// If the last status time is less recent, color it yellow
@@ -167,13 +168,13 @@
 					statusInfoDiv.style.color = "#000000";
 				}
 			}, 1/30 * 1100);
-			
+
 			setInterval(function(){
 				var joyUse = joystick.right() || joystick.up() || joystick.left() || joystick.down()
-				
+
 				var xValue = (joyUse ? joystick.deltaX() : 0)
 				var yValue = (joyUse ? joystick.deltaY()*-1 : 0)
-				
+
 				var outputEl	= document.getElementById('result');
 				outputEl.innerHTML	= '<b>Result:</b> '
 					+ ' dx:'+xValue
@@ -181,9 +182,9 @@
 					+ (joystick.right()	? ' right'	: '')
 					+ (joystick.up()	? ' up'		: '')
 					+ (joystick.left()	? ' left'	: '')
-					+ (joystick.down()	? ' down' 	: '')	
+					+ (joystick.down()	? ' down' 	: '')
 			}, 1/30 * 1100);
-			
+
 			setInterval(function(){
 				var joyUse = joystick.right() || joystick.up() || joystick.left() || joystick.down()
 				if (joyUse) {
