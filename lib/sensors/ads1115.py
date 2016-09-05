@@ -24,10 +24,10 @@ class ADS1115(sensor.Sensor):
         time.sleep(1.0/dataRate+0.0001)
 
         # Read two bytes from register 00, the ADC value
-        value = self.bus.read_word_data(self.i2cAddress, 0x00) & 0xFFFF
-        # Swap byte order from little endian to big endian
-        value = ((value & 0xFF) << 8) | (value >> 8)
-        return value
+        value = self.bus.read_i2c_block_data(self.i2cAddress, 0x00, 2)
+        # Assemble bytes
+        intvalue = value[0] * 256 + value[1]
+        return intvalue
 
     def asVolt(self, adc):
         return self.FS * adc / (pow(2, 15) - 1)
