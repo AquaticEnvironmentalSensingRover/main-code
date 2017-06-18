@@ -24,7 +24,7 @@ socketio = SocketIO(app)
 
 # BlueESC instances
 try:
-    from lib.sensors.blue_esc import BlueESC
+    from aesrdevicelib.sensors.blue_esc import BlueESC
     motors = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b),
               "r": BlueESC(0x2c)}
 except:

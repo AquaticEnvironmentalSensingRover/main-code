@@ -1,10 +1,10 @@
-from lib.sensors.mcp9808 import MCP9808
-from lib.sensors.ms5803 import MS5803
-from lib.sensors.gps_read import GPSRead
-from lib.sensors.mb7047 import MB7047
-from lib.sensors.vernier_odo import VernierODO
-from lib.database.mongo_write import MongoWrite
-import lib.main_util as mu
+from aesrdevicelib.sensors.mcp9808 import MCP9808
+from aesrdevicelib.sensors.ms5803 import MS5803
+from aesrdevicelib.sensors.gps_read import GPSRead
+from aesrdevicelib.sensors.mb7047 import MB7047
+from aesrdevicelib.sensors.vernier_odo import VernierODO
+from aesrdatabaselib.mongo_write import MongoWrite
+import aesrdatabaselib.main_util as mu
 import time, sys, datetime
 
 print("\nImports successfully completed\n")

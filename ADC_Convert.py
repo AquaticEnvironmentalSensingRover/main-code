@@ -1,4 +1,4 @@
-from lib.sensors.ads1115 import ADS1115
+from aesrdevicelib.sensors.ads1115 import ADS1115
 
 x = ADS1115()
 

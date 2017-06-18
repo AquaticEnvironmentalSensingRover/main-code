@@ -1,0 +1,2 @@
+git+git://github.com/aesrover/python-aesrdevicelib.git
+git+git://github.com/aesrover/python-aesrdatabaselib.git
