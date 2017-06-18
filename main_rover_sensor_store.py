@@ -7,7 +7,7 @@ from lib.database.mongo_write import MongoWrite
 import lib.main_util as mu
 import time, sys, datetime
 
-print "\nImports successfully completed\n"
+print("\nImports successfully completed\n")
 
 class StartError(Exception):
     def __init__(self, *args, **kwargs):
@@ -32,16 +32,16 @@ try:
 except:
     database = mu.generateTimeName()
 
-print "\n================>MongoDB<=================="
-print "Using database name: \"" + database + "\"" 
+print("\n================>MongoDB<==================")
+print("Using database name: \"" + database + "\"")
 
 deviceMongo = MongoWrite(database, "data")
-print "Connected to device MongoDB server successfully!"
+print("Connected to device MongoDB server successfully!")
 
 statusMongo = MongoWrite(database, "status")
-print "Connected to status MongoDB server successfully!"
+print("Connected to status MongoDB server successfully!")
 
-print "=============================================\n"
+print("=============================================\n")
 
 def lastMatchingStatusData(atype=None, itype=None):
     global statusMongo
@@ -68,7 +68,7 @@ def createDevice(deviceType, sensorConstructor, *args, **kwargs):
         device = sensorConstructor(*args, **kwargs)
         print(deviceType + " device was successfully initialized!")
     except:
-        print "Failed setting up " + deviceType + " device"
+        print("Failed setting up " + deviceType + " device")
         device = None
     finally:
         return device
@@ -114,7 +114,7 @@ def readDevice(device, readFunctionName, atype, paramUnit
 # =================Sensor Creation=================
 devices = {}
 
-print "\n===============>Sensor Setup<================"
+print("\n===============>Sensor Setup<================")
 tempSensors = []
 tempSensors.append(createDevice("Temperature 0", MCP9808, 0x18))       # On its own cable
 tempSensors.append(createDevice("Temperature 1", MCP9808, 0x18+1))     # On long cable with pressure sensor
@@ -129,10 +129,10 @@ devices["odo"] = createDevice("ODO", VernierODO)
 
 devices["gps"] = createDevice("GPS", GPSRead)
 
-print "=============================================\n"
+print("=============================================\n")
 
 # Print sensors
-print "\n===============>Sensor List<================="
+print("\n===============>Sensor List<=================")
 
 # Get keys and values of the "devices" dictionary separately
 keys = []
@@ -146,8 +146,8 @@ printValues = valueReplaceScan(values)
 
 # Use printing values for "devicesPrint"
 for ii, key in enumerate(keys):
-    print str(key) + ": " + str(printValues[ii])
-print "=============================================\n"
+    print(str(key) + ": " + str(printValues[ii]))
+print("=============================================\n")
 
 #{
 #  ver : <float>
@@ -191,5 +191,5 @@ try:
         
         time.sleep(1)
 finally:
-    if not devices["gps"] == None:
+    if not devices["gps"] is None:
         devices["gps"].close()

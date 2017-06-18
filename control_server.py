@@ -6,7 +6,7 @@ import os
 import sys
 import math
 
-print "\nImports successfully completed\n"
+print("\nImports successfully completed\n")
 
 # Static Variables
 CONTROL_MODE = "R"
@@ -28,19 +28,19 @@ try:
     motors = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b),
               "r": BlueESC(0x2c)}
 except:
-    print "Motor setup error: " + str(sys.exc_info()[1])
-    print "Disabling motors..."
+    print("Motor setup error: " + str(sys.exc_info()[1]))
+    print("Disabling motors...")
     motors = None
 
 # BNO055 sensor setup
 try:
-    from lib.sensors.bno055 import BNO055
+    from aesrdevicelib.sensors.bno055 import BNO055
     imu = BNO055()
     time.sleep(1)
     imu.setExternalCrystalUse(True)
 except:
-    print "\nIMU setup error: " + str(sys.exc_info()[1])
-    print "Disabling IMU..."
+    print("\nIMU setup error: " + str(sys.exc_info()[1]))
+    print("Disabling IMU...")
     imu = None
 
 lastConnectTime = None
@@ -95,8 +95,8 @@ def inputControl(data):
     xValue = int(data['x']*gain)
     yValue = int(data['y']*gain)
 
-    print "\n===================================="
-    print "Joy X:", xValue, "|", "Joy Y:", yValue
+    print("\n====================================")
+    print("Joy X:", xValue, "|", "Joy Y:", yValue)
 
     # IMU Compass:
     compass = None
@@ -107,8 +107,8 @@ def inputControl(data):
         currentBearing = math.atan2(compass[1], compass[0]) * 180 / math.pi
         compassTorque = (((currentBearing - targetBearing) + 180) % 360) - 180
 
-    print "Bearing: " + str(currentBearing)
-    print "Compass Torque: " + str(compassTorque)
+    print("Bearing: " + str(currentBearing))
+    print("Compass Torque: " + str(compassTorque))
 
     # Motor power calculation:
     torque = 0
@@ -122,17 +122,17 @@ def inputControl(data):
         motorPower = {'f': xValue + torque, 'b': xValue - torque,
                       'l': yValue + torque, 'r': yValue - torque}
 
-    print "Torque: " + str(torque)
+    print("Torque: " + str(torque))
 
-    motorPower = {k: normalizeMotorPower(v) for k, v in motorPower.iteritems()}
+    motorPower = {k: normalizeMotorPower(v) for k, v in motorPower.items()}
 
     # Print motor speeds:
-    print "\nMotors: "
+    print("\nMotors: ")
     print("F: " + str(motorPower['f']))
     print("B: " + str(motorPower['b']))
     print("L: " + str(motorPower['l']))
     print("R: " + str(motorPower['r']))
-    print "===================================="
+    print("====================================")
 
     # Update motor speeds if they were setup correctly:
     if isinstance(motors, dict):
