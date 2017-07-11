@@ -5,7 +5,7 @@
       <entry url="file://$PROJECT_DIR$">
         <entryData>
           <resourceRoots>
-            <path value="file://$PROJECT_DIR$/motorwebserver" />
+            <path value="file://$PROJECT_DIR$/control_server/motorwebserver" />
           </resourceRoots>
         </entryData>
       </entry>
