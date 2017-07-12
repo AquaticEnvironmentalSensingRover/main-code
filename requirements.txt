@@ -1,2 +1,8 @@
+# Control Server:
+flask
+flask-socketio
+pymongo
+
+# Our libraries:
 git+git://github.com/aesrover/python-aesrdevicelib.git
 git+git://github.com/aesrover/python-aesrdatabaselib.git
