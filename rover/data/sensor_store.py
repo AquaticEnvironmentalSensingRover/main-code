@@ -193,6 +193,10 @@ class SensorStore:
                              , paramUnit={'rawADC': 'Raw value from ADC', 'mgL': 'Oxygen level in mg/L'}
                              , comments=['Brick Yard Pond'])
 
+    def close_devices(self):
+        if not self.devices['gps'] is None:
+            self.devices['gps'].close()
+
 
 class SensorStoreThreaded(SensorStore, threading.Thread):
     def __init__(self, *args, read_delay: int=1, gps: GPSRead = None, mongo_db=None, **kwargs):
@@ -207,8 +211,7 @@ class SensorStoreThreaded(SensorStore, threading.Thread):
                 self.read()
                 time.sleep(self.read_delay)
         finally:
-            if not self.devices['gps'] is None:
-                self.devices['gps'].close()
+            self.close_devices()
 
     def close(self):
         self.running = False
