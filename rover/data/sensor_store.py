@@ -5,6 +5,7 @@ from aesrdevicelib.sensors.mb7047 import MB7047
 from aesrdevicelib.sensors.vernier_odo import VernierODO
 from aesrdatabaselib.mongo_write import MongoWrite
 import aesrdatabaselib.main_util as mu
+import threading
 import time
 import sys
 import datetime
@@ -191,3 +192,24 @@ class SensorStore:
             self.read_device(self.devices['odo'], 'read', atype='ODO', vertype=1.1
                              , paramUnit={'rawADC': 'Raw value from ADC', 'mgL': 'Oxygen level in mg/L'}
                              , comments=['Brick Yard Pond'])
+
+
+class SensorStoreThreaded(SensorStore, threading.Thread):
+    def __init__(self, *args, read_delay: int=1, gps: GPSRead = None, mongo_db=None, **kwargs):
+        self.running = True
+        self.read_delay = read_delay
+        super().__init__(gps, mongo_db)
+        threading.Thread.__init__(self, *args, **kwargs)
+
+    def run(self):
+        try:
+            while self.running:
+                self.read()
+                time.sleep(self.read_delay)
+        finally:
+            if not self.devices['gps'] is None:
+                self.devices['gps'].close()
+
+    def close(self):
+        self.running = False
+        self.join()
