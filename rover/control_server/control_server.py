@@ -48,6 +48,12 @@ class ControlServer(SocketIO):
             self.imu = BNO055()
             time.sleep(1)
             self.imu.setExternalCrystalUse(True)
+
+            print("Wait for IMU calibration [move it around]...")
+            while not self.imu.getCalibration() == (0x03,)*4:
+                time.sleep(0.5)
+            print("IMU calibration finished.")
+
         except IOError:
             print("\nIMU setup error: " + str(sys.exc_info()[1]))
             print("Disabling IMU...")
