@@ -167,34 +167,27 @@ class SensorStore:
         #  message : <String>
         # }
 
-        try:
-            while True:
-                # GPS
-                self.read_device(self.devices['gps'], 'readLocationData', atype='GPS', itype='main'
-                                 , paramUnit={'lat': 'latitude', 'lon': 'longitude'}
-                                 , comments=['Brick Yard Pond'], vertype=1.1)
+            # GPS
+            self.read_device(self.devices['gps'], 'readLocationData', atype='GPS', itype='main'
+                             , paramUnit={'lat': 'latitude', 'lon': 'longitude'}
+                             , comments=['Brick Yard Pond'], vertype=1.1)
 
-                # PRESSURE Sensor
-                self.read_device(self.devices['pressure'], 'read', atype='PRESR'
-                                 , paramUnit={'pressure': 'mbar', 'temp': 'degC'}
+            # PRESSURE Sensor
+            self.read_device(self.devices['pressure'], 'read', atype='PRESR'
+                             , paramUnit={'pressure': 'mbar', 'temp': 'degC'}
+                             , comments=['Brick Yard Pond'])
+
+            # TEMPERATURE Sensor
+            for ii, tempSensor in enumerate(self.devices['temperature']):
+                self.read_device(tempSensor, 'read', atype='TEMP', itype=ii
+                                 , paramUnit='degC'
                                  , comments=['Brick Yard Pond'])
 
-                # TEMPERATURE Sensor
-                for ii, tempSensor in enumerate(self.devices['temperature']):
-                    self.read_device(tempSensor, 'read', atype='TEMP', itype=ii
-                                     , paramUnit='degC'
-                                     , comments=['Brick Yard Pond'])
+            # SONAR Sensor
+            self.read_device(self.devices['sonar'], 'read', atype='SONAR'
+                             , paramUnit='cm', comments=['Brick Yard Pond'])
 
-                # SONAR Sensor
-                self.read_device(self.devices['sonar'], 'read', atype='SONAR'
-                                 , paramUnit='cm', comments=['Brick Yard Pond'])
-
-                # ODO (Optical Dissolved Oxygen) Sensor
-                self.read_device(self.devices['odo'], 'read', atype='ODO', vertype=1.1
-                                 , paramUnit={'rawADC': 'Raw value from ADC', 'mgL': 'Oxygen level in mg/L'}
-                                 , comments=['Brick Yard Pond'])
-
-                time.sleep(1)
-        finally:
-            if not self.devices['gps'] is None:
-                self.devices['gps'].close()
+            # ODO (Optical Dissolved Oxygen) Sensor
+            self.read_device(self.devices['odo'], 'read', atype='ODO', vertype=1.1
+                             , paramUnit={'rawADC': 'Raw value from ADC', 'mgL': 'Oxygen level in mg/L'}
+                             , comments=['Brick Yard Pond'])
