@@ -67,8 +67,8 @@ class ControlServer(SocketIO):
         self.index = self.app.route('/')(self.index)
 
         # Socket endpoints:
-        self.connect = self.on('connect')(self.connect)
-        self.inputControl = self.on('input')(self.inputControl)
+        self.connect = self.on('connect')(self.client_connect)
+        self.input_control = self.on('input')(self.input_control)
         self.poll = self.on('poll')(self.poll)
         self.client_disconnect = self.on('disconnect')(self.client_disconnect)
 
