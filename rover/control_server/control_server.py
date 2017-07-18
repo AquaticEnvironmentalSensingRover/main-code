@@ -27,12 +27,15 @@ def normalize_motor_power(power):
 
 
 class ControlServer(SocketIO):
-    def __init__(self, mongo_db=None):
+    def __init__(self, host, port, *args, mongo_db=None):
         # Dynamic Variables
         self.app = Flask(__name__, static_folder=WEBSERVER_FOLDER_NAME + "/static",
                          template_folder=WEBSERVER_FOLDER_NAME + "/templates")
 
         super().__init__(self.app)
+
+        self.host = host
+        self.port = port
 
         # BlueESC instances
         try:
@@ -78,8 +81,8 @@ class ControlServer(SocketIO):
         self.poll = self.on('poll')(self.poll)
         self.client_disconnect = self.on('disconnect')(self.client_disconnect)
 
-    def run(self, host=None, port=None, **kwargs):
-        super().run(self.app, host, port, **kwargs)
+    def run_server(self, **kwargs):
+        super().run(self.app, self.host, self.port, **kwargs)
 
     def favicon(self):
         return send_from_directory(os.path.join(self.app.root_path, 'static'),
@@ -169,9 +172,9 @@ class ControlServer(SocketIO):
         print('disconnect')
 
 if __name__ == '__main__':
-    cs = ControlServer()
+    cs = ControlServer(host="0.0.0.0", port=8000)
     try:
-        cs.run(host="0.0.0.0", port=8000)
+        cs.run_server()
     except KeyboardInterrupt:
         if isinstance(cs.motors, dict):
             for k, v in cs.motors:
