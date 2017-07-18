@@ -82,7 +82,12 @@ class ControlServer(SocketIO):
         self.client_disconnect = self.on('disconnect')(self.client_disconnect)
 
     def run_server(self, **kwargs):
-        super().run(self.app, self.host, self.port, **kwargs)
+        try:
+            super().run(self.app, self.host, self.port, **kwargs)
+        except:
+            if isinstance(cs.motors, dict):
+                for k, v in cs.motors:
+                    v.setPower(0)
 
     def favicon(self):
         return send_from_directory(os.path.join(self.app.root_path, 'static'),
@@ -173,9 +178,4 @@ class ControlServer(SocketIO):
 
 if __name__ == '__main__':
     cs = ControlServer(host="0.0.0.0", port=8000)
-    try:
-        cs.run_server()
-    except KeyboardInterrupt:
-        if isinstance(cs.motors, dict):
-            for k, v in cs.motors:
-                cs.motors[k].setPower(0)
+    cs.run_server()
