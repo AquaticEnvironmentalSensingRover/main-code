@@ -1,12 +1,12 @@
 from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, send_from_directory
 from pymongo import MongoClient
-from aesrdevicelib.sensors.blue_esc import BlueESC
-from aesrdevicelib.sensors.bno055 import BNO055
+from aesrdevicelib.sensors.gps_read import GPSRead
 import time
 import os
 import sys
 import math
+from ..thruster_control import ThrusterControl
 
 print("\nImports successfully completed\n")
 
@@ -27,7 +27,7 @@ def normalize_motor_power(power):
 
 
 class ControlServer(SocketIO):
-    def __init__(self, host, port, *args, mongo_db=None):
+    def __init__(self, host, port, *args, gps: GPSRead=None, mongo_db=None):
         # Dynamic Variables
         self.app = Flask(__name__, static_folder=WEBSERVER_FOLDER_NAME + "/static",
                          template_folder=WEBSERVER_FOLDER_NAME + "/templates")
@@ -37,30 +37,7 @@ class ControlServer(SocketIO):
         self.host = host
         self.port = port
 
-        # BlueESC instances
-        try:
-            self.motors = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b),
-                           "r": BlueESC(0x2c)}
-        except IOError:
-            print("Motor setup error: " + str(sys.exc_info()[1]))
-            print("Disabling motors...")
-            self.motors = None
-
-        # BNO055 sensor setup
-        try:
-            self.imu = BNO055()
-            time.sleep(1)
-            self.imu.setExternalCrystalUse(True)
-
-            print("Wait for IMU calibration [move it around]...")
-            while not self.imu.getCalibration() == (0x03,)*4:
-                time.sleep(0.5)
-            print("IMU calibration finished.")
-
-        except IOError:
-            print("\nIMU setup error: " + str(sys.exc_info()[1]))
-            print("Disabling IMU...")
-            self.imu = None
+        self.thruster = ThrusterControl(gps)
 
         self.lastConnectTime = None
         self.previousStatusData = []
@@ -77,17 +54,22 @@ class ControlServer(SocketIO):
 
         # Socket endpoints:
         self.connect = self.on('connect')(self.client_connect)
+        self.set_auto_state = self.on('set_auto_state')(self.set_auto_state)
+        self.req_auto_state = self.on('req_auto_state')(self.req_auto_state)
         self.input_control = self.on('input')(self.input_control)
         self.poll = self.on('poll')(self.poll)
         self.client_disconnect = self.on('disconnect')(self.client_disconnect)
 
+        # Start motor drive thread:
+        self.thruster.start()
+
     def run_server(self, **kwargs):
         try:
             super().run(self.app, self.host, self.port, **kwargs)
-        except:
-            if isinstance(cs.motors, dict):
-                for k, v in cs.motors:
-                    v.setPower(0)
+        finally:
+            print("Close thruster object:")
+            self.thruster.close()
+            print("--EXIT--")
 
     def favicon(self):
         return send_from_directory(os.path.join(self.app.root_path, 'static'),
@@ -108,66 +90,35 @@ class ControlServer(SocketIO):
 
     @staticmethod
     def client_connect():
-        print("connect")
+        print("Client Connect")
+
+    def set_auto_state(self, data):
+        if data['state'] == 1:
+            self.thruster.next_auto_target()
+        elif data['state'] == 0:
+            self.thruster.disable_auto()
 
     # NOTE: When getting data from VirtualJoystick, make sure to check if it is
     # "up", "down", "left", or "right" to stop when finger is lifted off
     def input_control(self, data):
-        target_bearing = 10
-        gain = 10  # 32767/80
-        x_value = int(data['x']*gain)
-        y_value = int(data['y']*gain)
+        print("Data: {}".format(data))
+        # target_bearing = 10
+        gain = 1  # 32767/80
+        x_value = data['x']*gain
+        y_value = data['y']*gain
 
         print("\n====================================")
         print("Joy X:", x_value, "|", "Joy Y:", y_value)
 
-        # IMU Compass:
-        current_bearing = None
-        compass_torque = 0
-        if self.imu is not None:
-            compass = self.imu.getVector(BNO055.VECTOR_MAGNETOMETER)
-            current_bearing = math.atan2(compass[1], compass[0]) * 180 / math.pi
-            compass_torque = (((current_bearing - target_bearing) + 180) % 360) - 180
-
-        print("Bearing: " + str(current_bearing))
-        print("Compass Torque: " + str(compass_torque))
-
-        # Motor power calculation:
-        if CONTROL_MODE == "R":
-            torque = x_value
-            motor_power = {'f': torque, 'b': -torque,
-                           'l': y_value, 'r': y_value}
-
-        else:  # Strafe mode
-            torque = compass_torque
-            motor_power = {'f': x_value + torque, 'b': x_value - torque,
-                           'l': y_value + torque, 'r': y_value - torque}
-
-        print("Torque: " + str(torque))
-
-        motor_power = {key: normalize_motor_power(val) for key, val in motor_power.items()}
-
-        # Print motor speeds:
-        print("\nMotors: ")
-        print("F: " + str(motor_power['f']))
-        print("B: " + str(motor_power['b']))
-        print("L: " + str(motor_power['l']))
-        print("R: " + str(motor_power['r']))
-        print("====================================")
-
-        # Update motor speeds if they were setup correctly:
-        if isinstance(self.motors, dict):
-            # X plane motors
-            self.motors['f'].startPower(motor_power['f'])
-            self.motors['b'].startPower(motor_power['b'])
-
-            # Y plane motors
-            self.motors['l'].startPower(motor_power['l'])
-            self.motors['r'].startPower(motor_power['r'])
+        self.thruster.manual_control(0, y_value, x_value)
 
         # Emit status data if collection was supplied:
         if self.dbCol is not None:
             emit("status", self.get_status_data())
+
+    def req_auto_state(self, data):
+        d = {'state': self.thruster.auto_enabled(), 'remaining': self.thruster.get_remaining_waypoints()}
+        emit("auto_status", d)
 
     def poll(self, data):
         self.lastConnectTime = time.time()
