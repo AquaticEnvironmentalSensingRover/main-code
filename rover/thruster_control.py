@@ -95,6 +95,10 @@ class ThrusterControl(threading.Thread):
     def print_debug(*args, **kwargs):
         print("ThrusterControl: DEBUG -", *args, **kwargs)
 
+    def print_only_debug(self, *args, **kwargs):
+        if self._DEBUG:
+            self.print_debug(*args, **kwargs)
+
     def start(self):
         self.running = True
         super().start()
