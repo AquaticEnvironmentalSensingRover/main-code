@@ -39,6 +39,7 @@ class ThrusterControl(threading.Thread):
         super().__init__(*args, **kwargs)
 
         self.AUTO_TARGETS = [{'lat': 41.73505, 'lon': -71.319}, {'lat': 41.736, 'lon': -71.320}]
+        self.TARGET_BEARING = 0
 
         self._DEBUG = False  # will enable if motors fail to initialize
 
@@ -179,6 +180,8 @@ class ThrusterControl(threading.Thread):
                 self.auto_target = None
             else:
                 """--- Autonomous ---"""
+
+                # Lateral Control:
                 try:
                     loc = self.gps.readLocationData()
                 except ValueError:
@@ -193,9 +196,28 @@ class ThrusterControl(threading.Thread):
                 pos_diff_m = util.gps_coord_mdiff((loc['lat'],loc['lon']),
                                                   (self.auto_target['lat'], self.auto_target['lon']))
 
-                self.print_debug("Autonomous Diff: {}".format(pos_diff_m))
+                # Rotational Control:
+                current_bearing = None
 
-                self.drive_thrusters(scale_m_distance(pos_diff_m[0]), scale_m_distance(pos_diff_m[1]), 0)
+                if self.imu is not None:
+                    current_bearing = self.imu.read_euler()[0]
+                elif self._DEBUG:
+                    current_bearing = self.TARGET_BEARING
+
+                if current_bearing is not None:  # If bearing was set by imu or debug value
+                    bearing_diff = (((self.TARGET_BEARING-current_bearing) + 180) % 360) - 180
+                else:  # IMU not working, but motors are: Disable Autonomous (shouldn't occur, but for safety)
+                    self.print_debug("ERROR: REACHED AUTONOMOUS WITH NO IMU?")
+                    self.stop_thrusters()
+                    continue
+
+                rot_torque = bearing_diff / 180
+
+                # Debug prints: Autonomous
+                self.print_only_debug("Curr Bear: {}, Bear Diff: {}, Rot: {} || Lat Diff: ({},{})"
+                                      .format(current_bearing, bearing_diff, rot_torque, pos_diff_m[0], pos_diff_m[1]))
+
+                self.drive_thrusters(scale_m_distance(pos_diff_m[0]), scale_m_distance(pos_diff_m[1]), rot_torque)
                 # TODO: IMU read and angle hold
 
             if self.auto_target is None:
