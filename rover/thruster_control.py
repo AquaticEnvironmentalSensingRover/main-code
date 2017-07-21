@@ -48,17 +48,6 @@ class ThrusterControl(threading.Thread):
         self.movement = {'x_trans': 0, 'y_trans': 0, 'xy_rot': 0, 'ts': None}  # Trans and rots are gains [-1.0, 1]
 
         """ ---- DEVICES ---- """
-        # GPS Setup:
-        if gps is None:
-            print("No GPS, attempting to connect")
-            try:
-                self.gps = GPSRead()
-                print("Successfully connected GPS")
-            except:
-                self.gps = None
-                print("Error connecting to GPS")
-
-
         # BlueESC instances
         try:
             self.thrusters = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b),
@@ -68,6 +57,17 @@ class ThrusterControl(threading.Thread):
             print("Disabling thrusters -- DEBUG MODE")
             self._DEBUG = True
             self.thrusters = None
+
+        # GPS Setup:
+        if gps is None:
+            print("No GPS, attempting to connect")
+            try:
+                self.gps = GPSRead()
+                print("Successfully connected GPS")
+            except:
+                self.gps = None
+                print("Error connecting to GPS")
+                self.disable_auto_not_debug()  # No gps, no autonomous... (unless in debug mode)
 
         # BNO055 sensor setup
         try:
@@ -83,6 +83,13 @@ class ThrusterControl(threading.Thread):
             print("\nIMU setup error: " + str(sys.exc_info()[1]))
             print("Disabling IMU...")
             self.imu = None
+
+            # Force disable autonomous if the IMU failed to initialize (if not in debug mode)
+            self.disable_auto_not_debug()
+
+    def disable_auto_not_debug(self):  # Disable auto, if not in debug mode
+        if not self._DEBUG:
+            self.auto_force_disable = True
 
     @staticmethod
     def print_debug(*args, **kwargs):
