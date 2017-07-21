@@ -73,7 +73,7 @@ class ThrusterControl(threading.Thread):
         try:
             self.imu = BNO055()
             time.sleep(1)
-            self.imu.setExternalCrystalUse(True)
+            self.imu.set_external_crystal(True)
 
             print("Wait for IMU calibration [move it around]...")
             while not self.imu.getCalibration() == (0x03,) * 4:
