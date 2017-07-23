@@ -106,7 +106,8 @@ class ThrusterControl(threading.Thread):
 
     def close(self):
         self.stop_thrusters()
-        self.gps.close()
+        if self.gps is not None:
+            self.gps.close()
         self.running = False
         self.join()
 
