@@ -61,6 +61,7 @@ class ThrusterControl(threading.Thread):
 
         # GPS Setup:
         if gps is None:
+            self.external_gps = False
             print("No GPS, attempting to connect")
             try:
                 self.gps = GPSRead()
@@ -69,6 +70,9 @@ class ThrusterControl(threading.Thread):
                 self.gps = None
                 print("Error connecting to GPS")
                 self.disable_auto_not_debug()  # No gps, no autonomous... (unless in debug mode)
+        else:
+            self.external_gps = True
+            self.gps = gps
 
         # BNO055 sensor setup
         try:
@@ -106,7 +110,7 @@ class ThrusterControl(threading.Thread):
 
     def close(self):
         self.stop_thrusters()
-        if self.gps is not None:
+        if self.external_gps is False and self.gps is not None:
             self.gps.close()
         self.running = False
         self.join()

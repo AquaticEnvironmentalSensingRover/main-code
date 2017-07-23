@@ -132,8 +132,10 @@ class SensorStore:
         self.devices['odo'] = self.create_device('ODO', VernierODO)
 
         if gps is None:
+            self.external_gps = False
             self.devices['gps'] = self.create_device('GPS', GPSRead)
         else:
+            self.external_gps = True
             self.devices['gps'] = gps
 
         print("=============================================\n")
@@ -194,7 +196,7 @@ class SensorStore:
                              , comments=['Brick Yard Pond'])
 
     def close_devices(self):
-        if not self.devices['gps'] is None:
+        if self.external_gps is False and not self.devices['gps'] is None:
             self.devices['gps'].close()
 
 
