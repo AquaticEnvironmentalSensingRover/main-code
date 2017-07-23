@@ -202,7 +202,7 @@ class SensorStoreThreaded(SensorStore, threading.Thread):
     def __init__(self, *args, read_delay: int=1, gps: GPSRead = None, mongo_db=None, **kwargs):
         self.running = True
         self.read_delay = read_delay
-        super().__init__(gps, mongo_db)
+        super().__init__(gps=gps, mongo_db=mongo_db)
         threading.Thread.__init__(self, *args, **kwargs)
 
     def run(self):
