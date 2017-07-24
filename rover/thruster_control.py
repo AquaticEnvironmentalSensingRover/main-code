@@ -6,6 +6,7 @@ except ImportError:  # SMBus doesn't exist: probably debugging
     print("Can't import BlueESC or/and BNO055. WILL ENTER DEBUG")
 from . import util
 import threading
+import logging
 import time
 import sys
 import math
@@ -19,6 +20,8 @@ FULL_PWR_DISTANCE = 10  # meters
 MIN_PWR = 0.05  # out of 1
 
 MAX_MTR_PWR = 20
+
+AUTO_LOG_CYCLE_WAIT = 50
 
 
 def scale_m_distance(m: float):
@@ -35,8 +38,10 @@ def scale_limit(s):
 
 
 class ThrusterControl(threading.Thread):
-    def __init__(self, *args, gps: GPSRead=None, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, logger: logging.Logger, *args, gps: GPSRead=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.name = "ThrusterController"  # Set thread name
 
         self.AUTO_TARGETS = [{'lat': 41.73505, 'lon': -71.319}, {'lat': 41.736, 'lon': -71.320}]
         self.TARGET_BEARING = 0
@@ -48,27 +53,34 @@ class ThrusterControl(threading.Thread):
         self.auto_target = None
         self.movement = {'x_trans': 0, 'y_trans': 0, 'xy_rot': 0, 'ts': None}  # Trans and rots are gains [-1.0, 1]
 
+        self.motors_disabled_prev = True
+        self.auto_cycle_count = 0
+
+        self.logger = logger
+
         """ ---- DEVICES ---- """
         # BlueESC instances
         try:
             self.thrusters = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b),
                               "r": BlueESC(0x2c)}
         except (IOError, NameError):
-            print("Thruster setup error: " + str(sys.exc_info()[1]))
-            print("Disabling thrusters -- DEBUG MODE")
+            self.logger.exception("Thruster setup error (DISABLING THRUSTERS) -- Entering DEBUG MODE")
             self._DEBUG = True
             self.thrusters = None
 
         # GPS Setup:
         if gps is None:
             self.external_gps = False
-            print("No GPS, attempting to connect")
+            self.logger.warning("No external GPS, attempting to connect.",
+                                extra={'type': 'DEVICE', 'device': 'gps', 'state': 'CREATING'})
             try:
                 self.gps = GPSRead()
-                print("Successfully connected GPS")
+                self.logger.info("Successfully connected to new GPS.",
+                                 extra={'type': 'DEVICE', 'device': 'gps', 'state': True})
             except:
                 self.gps = None
-                print("Error connecting to GPS")
+                self.logger.info("Error connecting to GPS.",
+                                 extra={'type': 'DEVICE', 'device': 'gps', 'state': False})
                 self.disable_auto_not_debug()  # No gps, no autonomous... (unless in debug mode)
         else:
             self.external_gps = True
@@ -80,13 +92,15 @@ class ThrusterControl(threading.Thread):
             time.sleep(1)
             self.imu.set_external_crystal(True)
 
-            print("Wait for IMU calibration [move it around]...")
+            self.logger.info("Waiting for IMU calibration [move it around]...",
+                             extra={'type': 'DEVICE', 'device': 'IMU', 'state': 'calibration'})
             while not self.imu.getCalibration() == (0x03,) * 4:
                 time.sleep(0.5)
-            print("IMU calibration finished.")
+            self.logger.info("IMU setup and calibration complete.",
+                             extra={'type': 'DEVICE', 'device': 'IMU', 'state': True})
         except (IOError, NameError):
-            print("\nIMU setup error: " + str(sys.exc_info()[1]))
-            print("Disabling IMU...")
+            self.logger.exception("IMU failed to setup -- DISABLING IMU",
+                                  extra={'type': 'DEVICE', 'device': 'IMU', 'state': False})
             self.imu = None
 
             # Force disable autonomous if the IMU failed to initialize (if not in debug mode)
@@ -94,6 +108,7 @@ class ThrusterControl(threading.Thread):
 
     def disable_auto_not_debug(self):  # Disable auto, if not in debug mode
         if not self._DEBUG:
+            self.logger.warning("Disabling autonomous.", extra={'type': 'AUTO', 'state': False})
             self.auto_force_disable = True
 
     @staticmethod
@@ -116,11 +131,7 @@ class ThrusterControl(threading.Thread):
         self.join()
 
     def stop_thrusters(self):
-        if isinstance(self.thrusters, dict):
-            for k, v in self.thrusters:
-                self.thrusters[k].setPower(0)
-        else:
-            self.print_debug("Stop Thrusters.")
+        self.drive_thrusters(0, 0, 0)
 
     def manual_control(self, x=0, y=0, rot=0):
         self.movement = {'x_trans': x, 'y_trans': y, 'xy_rot': rot, 'ts': time.time()}
@@ -132,11 +143,20 @@ class ThrusterControl(threading.Thread):
             'l': MAX_MTR_PWR * scale_limit(y + rot),
             'r': MAX_MTR_PWR * scale_limit(y - rot)}
 
+        if all(v == 0 for k,v in pwrs.items()):
+            if not self.motors_disabled_prev:
+                self.logger.debug("Stop thrusters", extra={'type': 'DEVICE', 'n': 'thrusters', 'state': 'stopped'})
+            self.motors_disabled_prev = True
+        else:
+            self.motors_disabled_prev = False
+
         if isinstance(self.thrusters, dict):
             for k, v in pwrs.items():
                 self.thrusters[k].startPower(v)
         else:
             self.print_debug("Thrusters Power: {}".format(pwrs))
+
+        return pwrs
 
     def auto_enabled(self) -> bool:
         if self.auto_target is None:
@@ -167,9 +187,17 @@ class ThrusterControl(threading.Thread):
         self.print_debug("Auto Disable")
         self.auto_target = None
 
+    def auto_debug_log(self, *args, **kwargs):
+        if False and self._DEBUG:
+            self.print_debug(*args)
+        else:
+            if self.auto_cycle_count >= AUTO_LOG_CYCLE_WAIT:
+                self.logger.debug(*args, **kwargs)
+                self.auto_cycle_count = 0
+
     def run(self):
         while self.running:
-            time.sleep(0.2)
+            time.sleep(0.02)
             # Recent control check:
             if self.movement['ts'] is None or ((time.time()-self.movement['ts']) > CONTROL_TIMEOUT):
                 self.auto_target = None
@@ -189,7 +217,7 @@ class ThrusterControl(threading.Thread):
                 # Lateral Control:
                 try:
                     loc = self.gps.readLocationData()
-                except ValueError:
+                except (ValueError, AttributeError):
                     if self._DEBUG:
                         loc = {'lat': 41.735, 'lon': -71.319}
                     else:
@@ -218,12 +246,17 @@ class ThrusterControl(threading.Thread):
 
                 rot_torque = bearing_diff / 180
 
-                # Debug prints: Autonomous
-                self.print_only_debug("Curr Bear: {}, Bear Diff: {}, Rot: {} || Lat Diff: ({},{})"
-                                      .format(current_bearing, bearing_diff, rot_torque, pos_diff_m[0], pos_diff_m[1]))
+                mtr_pwrs = self.drive_thrusters(scale_m_distance(pos_diff_m[0]), scale_m_distance(pos_diff_m[1]),
+                                                rot_torque)
 
-                self.drive_thrusters(scale_m_distance(pos_diff_m[0]), scale_m_distance(pos_diff_m[1]), rot_torque)
-                # TODO: IMU read and angle hold
+                # Debug prints: Autonomous
+                self.auto_debug_log("Curr Bear: {}, Bear Diff: {}, Rot: {} || Pos Diff (m): ({},{})"
+                                    .format(current_bearing, bearing_diff, rot_torque, pos_diff_m[0], pos_diff_m[1]),
+                                    extra={'type': 'AUTO', 'n': 'DATA', 'bearing': {'curr': current_bearing, 'diff': bearing_diff},
+                                           'torque': rot_torque, 'pos_diff': pos_diff_m, 'mtr_pwrs': mtr_pwrs,
+                                           'gps': {'curr': loc, 'target': self.auto_target}})
+
+                self.auto_cycle_count += 1
 
             if self.auto_target is None:
                 self.drive_thrusters(self.movement['x_trans'], self.movement['y_trans'], self.movement['xy_rot'])
