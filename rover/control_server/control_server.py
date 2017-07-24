@@ -37,7 +37,7 @@ class ControlServer(SocketIO):
         self.host = host
         self.port = port
 
-        self.thruster = ThrusterControl(gps)
+        self.thruster = ThrusterControl(gps=gps)
 
         self.lastConnectTime = None
         self.previousStatusData = []
