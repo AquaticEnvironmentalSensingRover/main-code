@@ -4,5 +4,6 @@ flask-socketio
 pymongo
 
 # Our libraries:
+git+git://github.com/aesrover/gps3@v0.33.1
 git+git://github.com/aesrover/python-aesrdevicelib.git@v1.3
 git+git://github.com/aesrover/python-aesrdatabaselib.git
