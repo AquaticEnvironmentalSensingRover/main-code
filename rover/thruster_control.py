@@ -46,7 +46,7 @@ class ThrusterControl(threading.Thread):
 
         self.name = "ThrusterController"  # Set thread name
 
-        self.AUTO_TARGETS = [{'lat': 41.73505, 'lon': -71.319}, {'lat': 41.736, 'lon': -71.320}]
+        self.AUTO_TARGETS = [{'lat': 41.7357, 'lon': -71.3252}, {'lat': 41.7356, 'lon': -71.325344}]
         self.TARGET_BEARING = 0
 
         self._DEBUG = False  # will enable if motors fail to initialize
