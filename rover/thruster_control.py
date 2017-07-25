@@ -14,7 +14,7 @@ import math
 
 CONTROL_TIMEOUT = 2  # Seconds
 
-DISTANCE_DEADBAND = 0.1  # meters
+AXIS_DEADBAND = 0.2  # meters
 
 FULL_PWR_DISTANCE = 10  # meters
 MIN_PWR = 0.05  # out of 1
@@ -23,9 +23,12 @@ MAX_MTR_PWR = 20
 
 AUTO_LOG_CYCLE_WAIT = 50
 
+INITIAL_DEADBAND = 1  # m
+REENGAGE_DEADBAND = 3  # m
+
 
 def scale_m_distance(m: float):
-    if abs(m) < DISTANCE_DEADBAND:
+    if abs(m) < AXIS_DEADBAND:
         return 0
     x = (-1 * FULL_PWR_DISTANCE * MIN_PWR) / (MIN_PWR - 1)  # applied to make m=FULL =>1 and m=0 =>MIN_PWR
     return (m/(FULL_PWR_DISTANCE+x)) + MIN_PWR
@@ -52,6 +55,7 @@ class ThrusterControl(threading.Thread):
         self.auto_force_disable = False
         self.auto_target = None
         self.movement = {'x_trans': 0, 'y_trans': 0, 'xy_rot': 0, 'ts': None}  # Trans and rots are gains [-1.0, 1]
+        self.on_target = False
 
         self.motors_disabled_prev = True
         self.auto_cycle_count = 0
@@ -246,15 +250,30 @@ class ThrusterControl(threading.Thread):
 
                 rot_torque = bearing_diff / 180
 
-                mtr_pwrs = self.drive_thrusters(scale_m_distance(pos_diff_m[0]), scale_m_distance(pos_diff_m[1]),
-                                                rot_torque)
+                # Calculate distance between target and current loc:
+                dist_m = math.sqrt(math.pow(pos_diff_m[0], 2) + math.pow(pos_diff_m[1], 2))
 
-                # Debug prints: Autonomous
-                self.auto_debug_log("Curr Bear: {}, Bear Diff: {}, Rot: {} || Pos Diff (m): ({},{})"
-                                    .format(current_bearing, bearing_diff, rot_torque, pos_diff_m[0], pos_diff_m[1]),
-                                    extra={'type': 'AUTO', 'n': 'DATA', 'bearing': {'curr': current_bearing, 'diff': bearing_diff},
-                                           'torque': rot_torque, 'pos_diff': pos_diff_m, 'mtr_pwrs': mtr_pwrs,
-                                           'gps': {'curr': loc, 'target': self.auto_target}})
+                # Target previously entered, and still in (larger) target deadband zone:
+                if self.on_target and dist_m < REENGAGE_DEADBAND:
+                    self.stop_thrusters()
+                    self.auto_debug_log("Waiting at target [holding] (thrusters disabled)",
+                                        extra={'type': 'AUTO', 'n': 'TARGET_WAIT', 'dist': dist_m})
+                elif dist_m < INITIAL_DEADBAND:  # Just entered target zone
+                    self.on_target = True
+                    self.stop_thrusters()
+                    self.logger.info("Entered target zone ({} m)-- Disabled motors".format(dist_m),
+                                     extra={'type': 'AUTO', 'n': 'ENTERED_TARGET', 'dist': dist_m})
+                else:
+                    self.on_target = False
+                    mtr_pwrs = self.drive_thrusters(scale_m_distance(pos_diff_m[0]), scale_m_distance(pos_diff_m[1]),
+                                                    rot_torque)
+
+                    # Debug prints: Autonomous
+                    self.auto_debug_log("Curr Bear: {}, Bear Diff: {}, Rot: {} || Pos Diff (m): ({},{})"
+                                        .format(current_bearing, bearing_diff, rot_torque, pos_diff_m[0], pos_diff_m[1]),
+                                        extra={'type': 'AUTO', 'n': 'DATA', 'bearing': {'curr': current_bearing, 'diff': bearing_diff},
+                                               'torque': rot_torque, 'pos_diff': pos_diff_m, 'mtr_pwrs': mtr_pwrs,
+                                               'gps': {'curr': loc, 'target': self.auto_target}})
 
                 self.auto_cycle_count += 1
 
