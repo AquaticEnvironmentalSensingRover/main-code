@@ -126,7 +126,9 @@ class ThrusterControl(threading.Thread):
             imu_status = (0,0,0,0)
             while not imu_status[3] == 0x3:
                 imu_status = self.imu.get_calibration_status()
+                print("\rIMU Calibration Status: {}".format(imu_status), end='', flush=True)
                 time.sleep(0.5)
+            print()
             self.logger.info("IMU setup and calibration complete.",
                              extra={'type': 'DEVICE', 'device': 'IMU', 'state': True})
         except (IOError, NameError):
