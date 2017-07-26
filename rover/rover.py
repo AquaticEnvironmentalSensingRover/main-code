@@ -28,7 +28,7 @@ class AESRover:
             self.logger = logging.getLogger('AESR')
             self.logger.setLevel(logging.DEBUG)
             self.logger.addHandler(logging.StreamHandler())  # Prints to console
-            self.logger.addHandler(MongoHandler(**MONGO_HOST, database_name=self.db_name, collection='log'))
+            self.logger.addHandler(MongoHandler(database_name=self.db_name, collection='log', **MONGO_HOST))
             self.logger.info("Initialized logger.", extra={'type': 'START'})
         except:
             print("\rFailed to create logger.\n")
