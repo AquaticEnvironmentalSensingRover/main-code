@@ -222,7 +222,9 @@ class ThrusterControl(threading.Thread):
                 # Lateral Control:
                 try:
                     loc = self.gps.readLocationData()
-                except (ValueError, AttributeError):
+                    if loc['lat'] is None or loc['lon'] is None:
+                        raise ValueError("No GPS fix")
+                except (ValueError, AttributeError, KeyError):
                     if self._DEBUG:
                         loc = {'lat': 41.735, 'lon': -71.319}
                     else:
