@@ -65,8 +65,7 @@ class ThrusterControl(threading.Thread):
         """ ---- DEVICES ---- """
         # BlueESC instances
         try:
-            self.thrusters = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2b),
-                              "r": BlueESC(0x2c)}
+            self.thrusters = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2e), "r": BlueESC(0x2c)}
         except (IOError, NameError):
             self.logger.exception("Thruster setup error (DISABLING THRUSTERS) -- Entering DEBUG MODE")
             self._DEBUG = True
