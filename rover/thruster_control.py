@@ -67,13 +67,17 @@ class ThrusterControl(threading.Thread):
         try:
             thrusters = {}
 
+            t_failed = False
             for n,a in {"f": 0x2a, "b": 0x2d, "l": 0x2e, "r": 0x2c}.items():
                 try:
                     thrusters[n] = BlueESC(a)
                 except IOError:
                     self.logger.exception("Thruster {} (at addr {}), failed to communicate".format(n,a),
                                           extra={'type': 'DEVICE', 'device': 'BlueEsc', 'addr': a, 'state': False})
+                    t_failed = True
             self.thrusters = thrusters
+            if t_failed is True:
+                raise IOError("One or more thrusters failed.")
         except (IOError, NameError):
             self.logger.exception("Thruster setup error")
             while True:
