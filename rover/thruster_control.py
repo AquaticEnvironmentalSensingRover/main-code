@@ -65,11 +65,33 @@ class ThrusterControl(threading.Thread):
         """ ---- DEVICES ---- """
         # BlueESC instances
         try:
-            self.thrusters = {"f": BlueESC(0x2a), "b": BlueESC(0x2d), "l": BlueESC(0x2e), "r": BlueESC(0x2c)}
+            thrusters = {}
+
+            for n,a in {"f": 0x2a, "b": 0x2d, "l": 0x2e, "r": 0x2c}.items():
+                try:
+                    thrusters[n] = BlueESC(a)
+                except IOError:
+                    self.logger.exception("Thruster {} (at addr {}), failed to communicate".format(n,a),
+                                          extra={'type': 'DEVICE', 'device': 'BlueEsc', 'addr': a, 'state': False})
+            self.thrusters = thrusters
         except (IOError, NameError):
-            self.logger.exception("Thruster setup error (DISABLING THRUSTERS) -- Entering DEBUG MODE")
-            self._DEBUG = True
-            self.thrusters = None
+            self.logger.exception("Thruster setup error")
+            while True:
+                time.sleep(0.01)  # To fix printing order
+                d_m = input("Would you like to continue in debug mode [Y/n]: ")
+                d_m = d_m.lower()
+                if d_m == "" or d_m == "y":
+                    self.logger.info("Continuing thruster control in DEBUG mode.",
+                                     extra={'type': 'MODULE', 'state': 'DEBUG'})
+                    self._DEBUG = True
+                    self.thrusters = None
+                    break
+                elif d_m == "n":
+                    self.logger.info("Exiting thruster control.",
+                                     extra={'type': 'MODULE', 'state': False})
+                    raise
+                else:
+                    print("Please input 'y'/'Y' or 'n'/'N'.\n")
 
         # GPS Setup:
         if gps is None:
