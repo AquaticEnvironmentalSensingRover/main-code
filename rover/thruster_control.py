@@ -156,7 +156,7 @@ class ThrusterControl(threading.Thread):
 
         if isinstance(self.thrusters, dict):
             for k, v in pwrs.items():
-                self.thrusters[k].startPower(v)
+                self.thrusters[k].startPower(round(v))
         else:
             self.print_debug("Thrusters Power: {}".format(pwrs))
 
