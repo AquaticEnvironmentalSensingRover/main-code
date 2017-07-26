@@ -98,7 +98,9 @@ class ThrusterControl(threading.Thread):
 
             self.logger.info("Waiting for IMU calibration [move it around]...",
                              extra={'type': 'DEVICE', 'device': 'IMU', 'state': 'calibration'})
-            while not self.imu.getCalibration() == (0x03,) * 4:
+            imu_status = (0,0,0,0)
+            while not imu_status[3] == 0x3:
+                imu_status = self.imu.get_calibration_status()
                 time.sleep(0.5)
             self.logger.info("IMU setup and calibration complete.",
                              extra={'type': 'DEVICE', 'device': 'IMU', 'state': True})
