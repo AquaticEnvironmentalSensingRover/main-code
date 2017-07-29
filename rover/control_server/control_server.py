@@ -7,7 +7,7 @@ import time
 import os
 import sys
 import math
-from ..thruster_control import ThrusterControl
+from ..thruster_control import ThrusterControl, BLUEESC_COM_I2C
 
 print("\nImports successfully completed\n")
 
@@ -28,7 +28,8 @@ def normalize_motor_power(power):
 
 
 class ControlServer(SocketIO):
-    def __init__(self, host, port, logger: logging.Logger, *args, gps: GPSRead=None, mongo_client=None, mongo_db=None):
+    def __init__(self, host, port, logger: logging.Logger, *args, blue_esc_com: int=BLUEESC_COM_I2C, gps: GPSRead=None,
+                 mongo_client=None, mongo_db=None):
         # Dynamic Variables
         self.app = Flask(__name__, static_folder=WEBSERVER_FOLDER_NAME + "/static",
                          template_folder=WEBSERVER_FOLDER_NAME + "/templates")
@@ -38,7 +39,7 @@ class ControlServer(SocketIO):
         self.host = host
         self.port = port
 
-        self.thruster = ThrusterControl(logger, gps=gps)
+        self.thruster = ThrusterControl(logger, blue_esc_com=blue_esc_com, gps=gps)
 
         self.lastConnectTime = None
         self.previousStatusData = []

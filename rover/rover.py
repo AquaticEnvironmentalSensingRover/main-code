@@ -4,13 +4,14 @@ from aesrdevicelib.sensors.gps_read import GPSRead
 from aesrdatabaselib.main_util import generateTimeName
 from pymongo import MongoClient
 import time
+from .thruster_control import BLUEESC_COM_I2C
 
 
 MONGO_HOST = {'host': 'localhost', 'port': 27017}
 
 
 class AESRover:
-    def __init__(self, sensor_store=False, thruster_control=False):
+    def __init__(self, sensor_store=False, thruster_control=False, blue_esc_com=BLUEESC_COM_I2C):
         print("=====Initializing rover=====\n")
         # Generate db for run:
         self.db_name = generateTimeName()  # TODO
@@ -63,7 +64,8 @@ class AESRover:
         if thruster_control is True:
             print("Creating thruster control...")
             from .control_server import control_server
-            self.control_server = control_server.ControlServer('0.0.0.0', 8000, logger=self.logger, gps=self.gps,
+            self.control_server = control_server.ControlServer('0.0.0.0', 8000, logger=self.logger,
+                                                               blue_esc_com=blue_esc_com, gps=self.gps,
                                                                mongo_db=self.mongo_client)
             print("Successfully created thruster control.")
             self.logger.info("Thruster Control: ENABLED",

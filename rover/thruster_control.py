@@ -1,6 +1,7 @@
 from aesrdevicelib.sensors.gps_read import GPSRead
 try:
-    from aesrdevicelib.motion.blue_esc import BlueESC_I2C
+    from aesrdevicelib.motion.pca9685 import PCA9685
+    from aesrdevicelib.motion.blue_esc import BlueESC_I2C, BlueESC_PCA9685
     from aesrdevicelib.sensors.bno055 import BNO055
 except ImportError:  # SMBus doesn't exist: probably debugging
     print("Can't import BlueESC or/and BNO055. WILL ENTER DEBUG")
@@ -19,7 +20,7 @@ AXIS_DEADBAND = 0.2  # meters
 FULL_PWR_DISTANCE = 10  # meters
 MIN_PWR = 0.05  # out of 1
 
-MAX_MTR_PWR = 6. * math.pow(10, -4)
+MAX_MTR_PWR = 0.1
 
 AUTO_LOG_CYCLE_WAIT = 50
 
@@ -39,9 +40,17 @@ def scale_limit(s):
     min_ = -max_
     return max(min_, min(max_, s))
 
+BLUEESC_COM_I2C = 1
+BLUEESC_COM_PWM_PCA9685 = 2
+
 
 class ThrusterControl(threading.Thread):
-    def __init__(self, logger: logging.Logger, *args, gps: GPSRead=None, **kwargs):
+    class BlueESCSetupException(Exception):
+        def __init__(self, exception: Exception, *args):
+            self.cause = exception
+            super().__init__(*args)
+
+    def __init__(self, logger: logging.Logger, *args, blue_esc_com=BLUEESC_COM_I2C, gps: GPSRead=None, **kwargs):
         super().__init__(**kwargs)
 
         self.name = "ThrusterController"  # Set thread name
@@ -64,22 +73,50 @@ class ThrusterControl(threading.Thread):
 
         """ ---- DEVICES ---- """
         # BlueESC instances
-        try:
-            thrusters = {}
+        self.thrusters = None
 
-            t_failed = False
-            for n,a in {"f": 0x2a, "b": 0x2d, "l": 0x2e, "r": 0x2c}.items():
+        self.blue_esc_com = blue_esc_com
+        try:
+            if blue_esc_com == BLUEESC_COM_I2C:
                 try:
-                    thrusters[n] = BlueESC_I2C(a)
-                except IOError:
-                    self.logger.exception("Thruster {} (at addr {}), failed to communicate".format(n,a),
-                                          extra={'type': 'DEVICE', 'device': 'BlueEsc', 'addr': a, 'state': False})
-                    t_failed = True
-            self.thrusters = thrusters
-            if t_failed is True:
-                raise IOError("One or more thrusters failed.")
-        except (IOError, NameError):
-            self.logger.exception("Thruster setup error")
+                    thrusters = {}
+
+                    t_failed = False
+                    for n,a in {"f": 0x2a, "b": 0x2d, "l": 0x2e, "r": 0x2c}.items():
+                        try:
+                            thrusters[n] = BlueESC_I2C(a)
+                        except IOError:
+                            self.logger.exception("Thruster {} (at addr {}), failed to communicate".format(n,a),
+                                                  extra={'type': 'DEVICE', 'device': 'BlueEsc', 'addr': a, 'state': False})
+                            t_failed = True
+                    self.thrusters = thrusters
+                    if t_failed is True:
+                        raise IOError("One or more thrusters failed.")
+                except (IOError, NameError) as e:
+                    self.logger.exception("Thruster setup error")
+                    raise self.BlueESCSetupException(e)
+            elif blue_esc_com == BLUEESC_COM_PWM_PCA9685:
+                try:
+                    self.p = PCA9685()
+                    self.p.set_pwm_freq(300)
+                    thrusters = {}
+
+                    for n, c in {"f": 12, "b": 15, "l": 13, "r": 14}.items():
+                        thrusters[n] = BlueESC_PCA9685(c, pca9685=self.p)
+
+                    for n, t in thrusters.items():
+                        t.enable()
+
+                    self.thrusters = thrusters
+                except (IOError, NameError) as e:
+                    self.logger.exception(
+                        "Failed to communicate to PCA9685 (for BlueESC PWM control). Will disable BlueESCs.",
+                        extra={'type': 'DEVICE', 'device': 'PCA9685', 'state': False})
+                    raise self.BlueESCSetupException(e)
+            else:
+                self.logger.warning("Invalid BlueESC communication form selected.",
+                                    extra={'type': 'DEVICE', 'device': 'PCA9685', 'state': False})
+        except self.BlueESCSetupException as e:
             while True:
                 time.sleep(0.01)  # To fix printing order
                 d_m = input("Would you like to continue in debug mode [Y/n]: ")
@@ -88,14 +125,16 @@ class ThrusterControl(threading.Thread):
                     self.logger.info("Continuing thruster control in DEBUG mode.",
                                      extra={'type': 'MODULE', 'state': 'DEBUG'})
                     self._DEBUG = True
+                    self.blue_esc_com = None
                     self.thrusters = None
                     break
                 elif d_m == "n":
                     self.logger.info("Exiting thruster control.",
                                      extra={'type': 'MODULE', 'state': False})
-                    raise
+                    raise e.cause
                 else:
                     print("Please input 'y'/'Y' or 'n'/'N'.\n")
+
 
         # GPS Setup:
         if gps is None:
@@ -157,11 +196,16 @@ class ThrusterControl(threading.Thread):
         super().start()
 
     def close(self):
-        self.stop_thrusters()
-        if self.external_gps is False and self.gps is not None:
-            self.gps.close()
         self.running = False
         self.join()
+
+        if self.blue_esc_com == BLUEESC_COM_PWM_PCA9685:
+            for k, v in self.thrusters.items():
+                v.disable()
+        else:
+            self.stop_thrusters()
+        if self.external_gps is False and self.gps is not None:
+            self.gps.close()
 
     def stop_thrusters(self):
         self.drive_thrusters(0, 0, 0)
@@ -185,7 +229,10 @@ class ThrusterControl(threading.Thread):
 
         if isinstance(self.thrusters, dict):
             for k, v in pwrs.items():
-                self.thrusters[k].start_power(round(v))
+                if self.blue_esc_com == BLUEESC_COM_I2C:
+                    self.thrusters[k].start_power(v)
+                else:
+                    self.thrusters[k].set_power(v)
         else:
             self.print_debug("Thrusters Power: {}".format(pwrs))
 
