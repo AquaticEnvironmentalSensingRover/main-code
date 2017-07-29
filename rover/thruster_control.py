@@ -1,6 +1,6 @@
 from aesrdevicelib.sensors.gps_read import GPSRead
 try:
-    from aesrdevicelib.sensors.blue_esc import BlueESC
+    from aesrdevicelib.motion.blue_esc import BlueESC_I2C
     from aesrdevicelib.sensors.bno055 import BNO055
 except ImportError:  # SMBus doesn't exist: probably debugging
     print("Can't import BlueESC or/and BNO055. WILL ENTER DEBUG")
@@ -19,7 +19,7 @@ AXIS_DEADBAND = 0.2  # meters
 FULL_PWR_DISTANCE = 10  # meters
 MIN_PWR = 0.05  # out of 1
 
-MAX_MTR_PWR = 20
+MAX_MTR_PWR = 6. * math.pow(10, -4)
 
 AUTO_LOG_CYCLE_WAIT = 50
 
@@ -70,7 +70,7 @@ class ThrusterControl(threading.Thread):
             t_failed = False
             for n,a in {"f": 0x2a, "b": 0x2d, "l": 0x2e, "r": 0x2c}.items():
                 try:
-                    thrusters[n] = BlueESC(a)
+                    thrusters[n] = BlueESC_I2C(a)
                 except IOError:
                     self.logger.exception("Thruster {} (at addr {}), failed to communicate".format(n,a),
                                           extra={'type': 'DEVICE', 'device': 'BlueEsc', 'addr': a, 'state': False})
@@ -185,7 +185,7 @@ class ThrusterControl(threading.Thread):
 
         if isinstance(self.thrusters, dict):
             for k, v in pwrs.items():
-                self.thrusters[k].startPower(round(v))
+                self.thrusters[k].start_power(round(v))
         else:
             self.print_debug("Thrusters Power: {}".format(pwrs))
 
