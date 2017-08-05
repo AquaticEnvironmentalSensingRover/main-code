@@ -115,7 +115,7 @@ class ThrusterControl(threading.Thread):
                     raise self.BlueESCSetupException(e)
             else:
                 self.logger.warning("Invalid BlueESC communication form selected.",
-                                    extra={'type': 'DEVICE', 'device': 'PCA9685', 'state': False})
+                                    extra={'type': 'DEVICE', 'device': 'BlueESC', 'state': False})
         except self.BlueESCSetupException as e:
             while True:
                 time.sleep(0.01)  # To fix printing order
