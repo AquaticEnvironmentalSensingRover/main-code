@@ -1,6 +1,6 @@
 from flask_socketio import SocketIO, emit
 from flask import Flask, render_template, send_from_directory
-from pymongo import MongoClient
+from pymongo.collection import Collection
 from aesrdevicelib.sensors.gps_read import GPSRead
 import logging
 import time
@@ -29,7 +29,7 @@ def normalize_motor_power(power):
 
 class ControlServer(SocketIO):
     def __init__(self, host, port, logger: logging.Logger, *args, blue_esc_com: int=BLUEESC_COM_I2C, gps: GPSRead=None,
-                 mongo_client=None, mongo_db=None):
+                 status_mongo_col: Collection=None):
         # Dynamic Variables
         self.app = Flask(__name__, static_folder=WEBSERVER_FOLDER_NAME + "/static",
                          template_folder=WEBSERVER_FOLDER_NAME + "/templates")
@@ -45,10 +45,7 @@ class ControlServer(SocketIO):
         self.previousStatusData = []
 
         # Get status Collection object from inputted database name
-        if mongo_client is not None and mongo_db is not None:
-            self.dbCol = (mongo_client[mongo_db])["status"]
-        else:
-            self.dbCol = None
+        self.dbCol = status_mongo_col
 
         # Routes:
         self.favicon = self.app.route('/favicon.ico')(self.favicon)

@@ -20,6 +20,7 @@ class AESRover:
         # Mongo Client setup:
         print("Creating mongo client...", end='', flush=True)
         self.mongo_client = MongoClient(**MONGO_HOST)  # MongoClient setup
+        self.mongo_db = self.mongo_client[self.db_name]
         time.sleep(1)
         print("\rSuccessfully created mongo client.")
 
@@ -66,7 +67,7 @@ class AESRover:
             from .control_server import control_server
             self.control_server = control_server.ControlServer('0.0.0.0', 8000, logger=self.logger,
                                                                blue_esc_com=blue_esc_com, gps=self.gps,
-                                                               mongo_db=self.mongo_client)
+                                                               status_mongo_col=self.mongo_db['status'])
             print("Successfully created thruster control.")
             self.logger.info("Thruster Control: ENABLED",
                              extra={'type': 'MODULE', 'n': 'thruster_control', 'state': True})
