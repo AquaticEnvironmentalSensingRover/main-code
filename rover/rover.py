@@ -53,7 +53,7 @@ class AESRover:
         if sensor_store is True:
             print("Creating sensor store...", end='', flush=True)
             from .data import sensor_store as sstore
-            self.sensor_store = sstore.SensorStoreThreaded(gps=self.gps, mongo_db=self.mongo_client)
+            self.sensor_store = sstore.SensorStoreThreaded(self.mongo_db, self.logger, gps=self.gps)
             print("\rSuccessfully created sensor store.")
             self.logger.info("Sensor Store: ENABLED", extra={'type': 'MODULE', 'n': 'sensor_store', 'state': True})
         else:
