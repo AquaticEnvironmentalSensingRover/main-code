@@ -37,27 +37,32 @@ class SensorStore:
         if itype is not None:
             dev_name += "-{}".format(itype)
 
+        if args is None:
+            args = ()
+        if kwargs is None:
+            kwargs = {}
+
         if inspect.isclass(sensor):
             try:
                 device = sensor(*args, **kwargs)
                 print(dev_name + " device was successfully initialized!")
-            except:
-                print("Failed setting up " + dev_name + " device")
+            except Exception as e:
+                print("Failed setting up " + dev_name + " device ({})".format(e))
                 return None
         else:
             device = sensor
 
-        if not isinstance(func, callable):
+        if not callable(func):
             func = getattr(device, func)
-        return (device, data_source.DataSource(self.device_mongo, self.status_mongo, func, atype,
-                                               param_unit, itype, description, vertype, self.logger))
+        return (device, data_source.DataSource(self.device_mongo, self.status_mongo, self.logger, func, atype,
+                                               param_unit, itype, description, vertype))
 
     @staticmethod
     def read_device(dev: Tuple[Any, data_source.DataSource]):
         if dev is not None:
             dev[1].read_store()
 
-    def __init__(self, mongo_db: Database, *args, gps: GPSRead=None, logger=None):
+    def __init__(self, mongo_db: Database, logger, *args, gps: GPSRead=None):
         self.logger = logger
 
         self.device_mongo = mongo_db['data']
@@ -133,10 +138,10 @@ class SensorStore:
 
 
 class SensorStoreThreaded(SensorStore, threading.Thread):
-    def __init__(self, mongo_db, *args, read_delay: int=1, gps: GPSRead = None, **kwargs):
+    def __init__(self, mongo_db, logger, *args, read_delay: int=1, gps: GPSRead = None, **kwargs):
         self.running = True
         self.read_delay = read_delay
-        super().__init__(mongo_db, gps=gps)
+        super().__init__(mongo_db, logger, gps=gps)
         threading.Thread.__init__(self, *args, **kwargs)
 
     def run(self):

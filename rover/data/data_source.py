@@ -8,8 +8,8 @@ import sys
 class DataSource:
     ESCALATE_WAIT = 30
 
-    def __init__(self, mongo_main: Collection, mongo_status: Collection, read_func, atype, param_unit, itype=None,
-                 description=None, vertype=1.0, logger: logging.Logger=None):
+    def __init__(self, mongo_main: Collection, mongo_status: Collection, logger: logging.Logger, read_func, atype,
+                 param_unit, itype=None, description=None, vertype=1.0):
         self.mongo_main = mongo_main
         self.mongo_status = mongo_status
         self.read_func = read_func
