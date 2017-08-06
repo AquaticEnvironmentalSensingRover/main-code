@@ -31,7 +31,7 @@ class SensorStore:
 
         return new_value
 
-    def create_device(self, atype, param_unit, sensor, func, args=None, kwargs=None, itype=None, description=None,
+    def create_device(self, atype, param_unit, sensor, read_func, args=None, kwargs=None, data_aq_func=None, itype=None, description=None,
                       vertype=1.0):
         dev_name = atype
         if itype is not None:
@@ -52,8 +52,15 @@ class SensorStore:
         else:
             device = sensor
 
-        if not callable(func):
-            func = getattr(device, func)
+        if not callable(read_func):
+            read_func = getattr(device, read_func)
+        if data_aq_func is not None:
+            def new_func():
+                getattr(device, data_aq_func)()
+                return read_func()
+            func = new_func
+        else:
+            func = read_func
         return (device, data_source.DataSource(self.device_mongo, self.status_mongo, self.logger, func, atype,
                                                param_unit, itype, description, vertype))
 
