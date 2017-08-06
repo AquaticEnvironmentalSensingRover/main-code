@@ -1,8 +1,9 @@
-from aesrdevicelib.sensors.mcp9808 import MCP9808
-from aesrdevicelib.sensors.ms5803 import MS5803
 from aesrdevicelib.sensors.gps_read import GPSRead
-from aesrdevicelib.sensors.mb7047 import MB7047
+from aesrdevicelib.sensors.tsys01 import TSYS01
+from aesrdevicelib.sensors.ms5837 import MS5837
 from aesrdevicelib.sensors.vernier_odo import VernierODO
+from aesrdevicelib.sensors.bme280 import BME280
+from aesrdevicelib.other.tca9548a import TCA9548A
 from pymongo.database import Database
 from typing import Tuple, Any
 import inspect
@@ -79,14 +80,22 @@ class SensorStore:
         self.devices = {}
 
         print("\n===============>Sensor Setup<================")
-        t = []
-        for i in range(0,3): # On its own cable, on long cable with pressure sensor, air temperature
-            t.append(self.create_device('temp', 'C', MCP9808, 'read', (0x18+i,), itype=i))
-        self.devices['temperature'] = t
+        try:
+            tca = TCA9548A()
+        except:
+            self.logger.exception("TCA Multiplexer failed to start", extra={'type': 'DEVICE', 'device': 'TCA9549A',
+                                                                            'state': False})
+        else:
+            #tca.select_channel(0),
+            self.devices['temperature'] = self.create_device('temp', 'C', TSYS01, 'read',
+                                                             kwargs={'pre_func': tca.select_channel, 'pre_func_args': (0,)})
 
-        self.devices['pressure'] = self.create_device('pres', {'pres': 'mbar', 'temp': 'degC'}, MS5803, 'read')
+            self.devices['pressure'] = self.create_device('pres', {'pres': 'mbar', 'temp': 'degC'}, MS5837,
+                                                          'pressure', data_aq_func='read') # kwargs={'pre_func': tca.select_channel,
+                                                                              #'pre_func_args': (0,)}
 
-        self.devices['sonar'] = self.create_device('sonar', "cm", MB7047, 'read')
+            self.devices['bathyenv'] = self.create_device('bathyenv', 'humidity', BME280, 'get_humidity',
+                                                          kwargs={'i2c_address': 0x77, 'pre_func': tca.select_channel, 'pre_func_args': (2,)}, data_aq_func='read_data')
 
         self.devices['odo'] = self.create_device('odo', {'rawADC': 'Raw value from ADC', 'mgL': 'Oxygen level in mg/L'},
                                                  VernierODO, 'read', vertype=1.1)
