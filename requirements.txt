@@ -10,3 +10,5 @@ log4mongo
 git+git://github.com/aesrover/gps3@v0.33.1
 git+git://github.com/aesrover/python-aesrdevicelib.git@v1.4
 git+git://github.com/aesrover/python-aesrdatabaselib.git
+
+git+git://github.com/luciengaitskell/python-dagu-rs039
