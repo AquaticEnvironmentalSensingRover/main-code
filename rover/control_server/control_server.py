@@ -100,14 +100,12 @@ class ControlServer(SocketIO):
     # NOTE: When getting data from VirtualJoystick, make sure to check if it is
     # "up", "down", "left", or "right" to stop when finger is lifted off
     def input_control(self, data):
-        print("Data: {}".format(data))
         # target_bearing = 10
         gain = 1  # 32767/80
         x_value = data['x']*gain
         y_value = data['y']*gain
 
-        print("\n====================================")
-        print("Joy X:", x_value, "|", "Joy Y:", y_value)
+        print("[Joystic Update] Joy X: {} | Joy Y: {}".format(x_value, y_value))
 
         self.thruster.manual_control(0, y_value, x_value)
 
