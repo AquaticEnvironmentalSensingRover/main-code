@@ -21,7 +21,7 @@ class DataSource:
         self.last_change = None
 
     def last_matching_status_data(self):
-        db_col = self.mongo_status.dbCol
+        db_col = self.mongo_status
         for ii in db_col.find().sort([['_id', 1]]):
             new_atype = ii.get('atype', None)
             new_itype = ii.get('itype', None)
@@ -34,7 +34,7 @@ class DataSource:
         new_status_data = dict(base)
         new_status_data['param'] = param
         if old_status_data is not None:
-            self.mongo_status.update({'_id': old_status_data['_id']}, {'$set': new_status_data}, upsert=False)
+            self.mongo_status.update_one({'_id': old_status_data['_id']}, {'$set': new_status_data}, upsert=False)
         else:
             self.mongo_status.insert_one(new_status_data)
 
@@ -70,7 +70,7 @@ class DataSource:
             write_data['paramunit'] = self.param_unit
             write_data['desc'] = self.desc
 
-            self.mongo_main.insert(write_data)
+            self.mongo_main.insert_one(write_data)
         except KeyboardInterrupt:
             raise
         except:
