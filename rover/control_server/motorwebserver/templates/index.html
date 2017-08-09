@@ -42,6 +42,18 @@
 			overflow:auto;
 			white-space: nowrap;
 		}
+        #autoControl {
+			position	: absolute;
+			bottom      : 0px;
+			right		: 0px;
+			width		: 25%;
+			padding		: 5px;
+			text-align	: center;
+			background-color: #D5CFCD;
+			max-height: 100%;
+			overflow:auto;
+			white-space: nowrap;
+		}
 		#container {
 			width		: 100%;
 			height		: 100%;
@@ -66,6 +78,10 @@
 		<div id="statusData">STATUS (NEW->OLD)<br/></div>
 		<span id="result"></span>
 		</div>
+        <div id="autoControl">
+            <div id="autoStatus">Auto: Disabled</div><br/>
+            <input id="autotog" type="button" value="Auto Toggle" onclick="switchAutoState();" /><br/>
+        </div>
 		<script type="text/javascript" src="/static/scripts/virtualjoystick.js"></script>
 		<script type="text/javascript" src="/static/scripts/socket.io-1.4.5.js"></script>
 		<script>
@@ -123,6 +139,37 @@
 			});
 
 
+			var auto_state = false;
+			var auto_status_div = document.getElementById('autoStatus');
+            function switchAutoState() {
+                auto_state = !auto_state;
+                console.log(auto_state)
+                if(auto_state) {
+                    socket.emit("set_auto_state", {state: 1})
+                } else {
+                    socket.emit("set_auto_state", {state: 0})
+                }
+
+            }
+
+            setInterval(function() {
+                socket.emit("req_auto_state", {})
+            }, 1/30 * 1100);
+
+            socket.on('auto_status', function (data) {
+                var s = data.state;
+                var rem = data.remaining;
+                if (s === true){
+                    auto_status_div.innerHTML = "Auto: Enabled";
+                } else if (s === false){
+                    auto_status_div.innerHTML = "Auto: Disabled";
+                } else {
+                    auto_status_div.innerHTML = "Returned " + data;
+                }
+                auto_status_div.innerHTML = auto_status_div.innerHTML + " (" + rem + " remaining)";
+				auto_state = s;
+			});
+
 			// Status display updating
 			setInterval(function(){
 				// Status data DIV:
@@ -177,8 +224,8 @@
 
 				var outputEl	= document.getElementById('result');
 				outputEl.innerHTML	= '<b>Result:</b> '
-					+ ' dx:'+xValue
-					+ ' dy:'+yValue
+					+ ' dx:'+xValue/joyRadius
+					+ ' dy:'+yValue/joyRadius
 					+ (joystick.right()	? ' right'	: '')
 					+ (joystick.up()	? ' up'		: '')
 					+ (joystick.left()	? ' left'	: '')
